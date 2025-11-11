@@ -25,6 +25,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
+    console.error({ error });
     return NextResponse.json(
       { error: 'Failed to load image' },
       { status: 500 }
