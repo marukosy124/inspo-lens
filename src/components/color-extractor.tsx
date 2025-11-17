@@ -1,5 +1,3 @@
-'use client';
-
 import useColorThief from 'use-color-thief';
 
 interface ColorExtractorProps {

@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 
 interface ImageAnalyzerProps {
@@ -14,7 +12,7 @@ const ImageAnalyzer = ({ imageUrl }: ImageAnalyzerProps) => {
   useEffect(() => {
     async function analyzeImage() {
       setIsLoading(true);
-      fetch('/api/image-analysis', {
+      fetch('/api/analyze-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageUrl }),
