@@ -7,25 +7,29 @@ const prompt = `
 Given an image, analyze its visual content and return the following:
 
 1. Description:
-- Write 1–3 sentences describing what can be seen in the image directly.
+- Write 1-3 concise, precise sentence directly describing the main visual content of the image.
+- Focus on the primary objects, style, color, and atmosphere.
 - Avoid meta phrases like “the image shows” or “this picture features.”
-- Include key visual details such as color, material, texture, and composition.
-- Capture the overall mood or aesthetic naturally (e.g., cozy, vintage, elegant).
+- Be direct and avoid filler detail.
 
 2. Keywords:
-- Provide 15–40 concise keywords related to the image.
-- Include relevant objects, colors, materials, fashion/style terms, moods, and photographic attributes.
+- Provide 5-10 concise keywords related to the image.
+- Include relevant objects, colors, materials, style terms, moods, and photographic attributes.
 - Favor descriptive, searchable terms useful for cataloging, fashion tagging, or creative databases.
-- Do not include redundant plural/singular variations unless contextually distinct.
 - Use only lowercase single words or short phrases (no sentences).
+- Do not include redundant plural/singular variations unless contextually distinct.
+
+3. SearchTerm:
+- Return a single, short one-line search term summarizing the image, optimized for quick searching, using 3–7 relevant concepts (comma-separated if needed).
 
 ## Output Format (in JSON):
-{ description: string,  keywords: string[] }
+{ description: string, keywords: string[], searchTerm: string }
 `;
 
 const AnalysisResponse = z.object({
   description: z.string(),
   keywords: z.array(z.string()),
+  searchTerm: z.string(),
 });
 
 export async function POST(request: Request) {
