@@ -20,7 +20,7 @@ Given an image, analyze its visual content and return the following:
 - Do not include redundant plural/singular variations unless contextually distinct.
 
 3. SearchTerm:
-- Return a single, short one-line search term summarizing the image, optimized for quick searching, using 3–7 relevant concepts (comma-separated if needed).
+- Return a single, short one-line search term summarizing the image, optimized for quick searching.
 
 ## Output Format (in JSON):
 { description: string, keywords: string[], searchTerm: string }

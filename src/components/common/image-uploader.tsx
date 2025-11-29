@@ -5,10 +5,26 @@ import { Upload, LinkIcon, Loader2 } from 'lucide-react';
 import { PutBlobResult } from '@vercel/blob';
 import { cn, generateId } from '@/lib/utils';
 import { ImageInfo } from '@/lib/types';
+import { env } from '@/lib/env';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface ImageUploaderProps {
   remainingImageCount: number;
   onImagesAdded: (newImages: ImageInfo[]) => void;
+}
+
+function isValidUrl(url: string): boolean {
+  try {
+    const trimmed = url.trim();
+    const parsed = new URL(trimmed);
+    return (
+      (parsed.protocol === 'http:' || parsed.protocol === 'https:') &&
+      !!parsed.hostname
+    );
+  } catch {
+    return false;
+  }
 }
 
 const ImageUploader = ({
@@ -18,9 +34,13 @@ const ImageUploader = ({
   const [urlInput, setUrlInput] = useState<string>('');
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [inputError, setInputError] = useState<string | null>(null);
 
   const getProxyUrl = (imageUrl: string) => {
-    return `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`;
+    // only use proxy url on dev
+    return env.APP_ENV === 'dev'
+      ? `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`
+      : imageUrl;
   };
 
   const uploadImage = async (file: File) => {
@@ -42,18 +62,63 @@ const ImageUploader = ({
     }
   };
 
-  const handleUrlSubmit = useCallback(() => {
-    if (!urlInput.trim()) return;
+  // Validate only accepts one url, must start with http/https
+  const validateUrl = (raw: string) => {
+    const val = raw.trim();
+    if (!val) {
+      return { valid: false, url: '', error: null };
+    }
 
-    const urls = urlInput.split('\n').filter((url) => url.trim());
-    const images = urls.map((url) => {
-      const trimmedUrl = url.trim();
+    // Allow only a single URL (no line breaks)
+    if (val.includes('\n')) {
       return {
-        id: generateId(),
-        imageUrl: trimmedUrl ?? null,
-        proxyUrl: trimmedUrl ? getProxyUrl(trimmedUrl) : null,
+        valid: false,
+        url: val,
+        error: 'Please enter only one URL at a time.',
       };
-    });
+    }
+
+    // Only valid if starts with http or https and has a valid format
+    if (!/^https?:\/\//i.test(val)) {
+      return {
+        valid: false,
+        url: val,
+        error: 'Only http:// or https:// image URLs are supported.',
+      };
+    }
+
+    if (!isValidUrl(val)) {
+      return {
+        valid: false,
+        url: val,
+        error: 'Invalid URL provided.',
+      };
+    }
+
+    return { valid: true, url: val, error: null };
+  };
+
+  const handleUrlSubmit = useCallback(() => {
+    const { valid, url, error } = validateUrl(urlInput);
+    if (!urlInput.trim()) {
+      setInputError(null);
+      return;
+    }
+    if (!valid) {
+      setInputError(error || 'Invalid URL');
+      return;
+    }
+
+    setInputError(null);
+
+    const trimmedUrl = url.trim();
+    const images = [
+      {
+        id: generateId(),
+        imageUrl: trimmedUrl,
+        proxyUrl: getProxyUrl(trimmedUrl),
+      },
+    ];
 
     onImagesAdded(images);
     setUrlInput('');
@@ -75,7 +140,6 @@ const ImageUploader = ({
             id: generateId(),
             imageUrl: uploadedUrl ?? null,
             proxyUrl: uploadedUrl ? getProxyUrl(uploadedUrl) : null,
-            // file,
           };
         })
       );
@@ -95,7 +159,6 @@ const ImageUploader = ({
             id: generateId(),
             imageUrl: uploadedUrl ?? null,
             proxyUrl: uploadedUrl ? getProxyUrl(uploadedUrl) : null,
-            // file,
           };
         })
       );
@@ -104,6 +167,37 @@ const ImageUploader = ({
     },
     [onImagesAdded]
   );
+
+  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUrlInput(e.target.value);
+    const result = validateUrl(e.target.value);
+    setInputError(!e.target.value.trim() || result.valid ? null : result.error);
+  };
+
+  const onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Enter (either press just Enter or ctrl/cmd+Enter)
+    if (
+      e.key === 'Enter' &&
+      !e.shiftKey &&
+      !e.altKey &&
+      !e.ctrlKey &&
+      !e.metaKey &&
+      urlInput.trim()
+    ) {
+      e.preventDefault();
+      handleUrlSubmit();
+    }
+    // (Optionally allow Cmd+Enter for legacy)
+    if (e.key === 'Enter' && e.metaKey && urlInput.trim()) {
+      e.preventDefault();
+      handleUrlSubmit();
+    }
+  };
+
+  // Determine if any validation errors exist for current input
+  const urlCheck = validateUrl(urlInput);
+  const disableAddButton =
+    !urlInput.trim() || !urlCheck.valid || remainingImageCount === 0;
 
   return (
     <div className="space-y-6">
@@ -158,11 +252,6 @@ const ImageUploader = ({
                 or click to browse your files
               </p>
             )}
-            {/* {remainingImageCount !== null && (
-              <p className="text-xs text-blue-600 mt-2">
-                {remainingImageCount} images remaining today
-              </p>
-            )} */}
           </div>
         </div>
       </div>
@@ -180,28 +269,31 @@ const ImageUploader = ({
         <div className="flex gap-2">
           <div className="flex-1 relative">
             <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              placeholder="Paste image URL(s), one per line..."
+            <Input
+              placeholder="Paste image URL (must start with http:// or https://)"
               value={urlInput}
-              onChange={(e) => setUrlInput(e.target.value)}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onKeyDown={(e) =>
-                e.key === 'Enter' && e.metaKey && handleUrlSubmit()
-              }
+              onChange={onInputChange}
+              className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                inputError
+                  ? 'border-red-400 focus:ring-red-400'
+                  : 'border-gray-300'
+              }`}
+              onKeyDown={onInputKeyDown}
               disabled={remainingImageCount === 0}
             />
+            {inputError && (
+              <div className="absolute left-0 right-0 mt-1 text-xs text-red-500">
+                {inputError}
+              </div>
+            )}
           </div>
-          <button
-            onClick={handleUrlSubmit}
-            disabled={!urlInput.trim() || remainingImageCount === 0}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
+          <Button onClick={handleUrlSubmit} disabled={disableAddButton}>
             Add URL
-          </button>
+          </Button>
         </div>
-        <p className="text-xs text-gray-500">
-          Tip: You can paste multiple URLs, one per line
-        </p>
+        <div className="text-xs text-gray-500 pl-1 pt-1">
+          Only a single image URL is allowed. Supported schemes: http(s) only.
+        </div>
       </div>
     </div>
   );

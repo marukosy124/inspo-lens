@@ -1,14 +1,18 @@
 'use client';
 
-import ImageAnalysisCard from '@/components/image-analysis/image-analysis-card';
-import ImageUploader from '@/components/image-uploader';
+import AnalysisCard from '@/components/image-analysis/analysis-card';
+import ImageUploader from '@/components/common/image-uploader';
+import { useUsageLimit } from '@/hooks/use-usage-limit';
 import { ImageInfo, ImageAnalysis } from '@/lib/types';
-import { AlertCircle, Sparkles } from 'lucide-react';
+import { AlertCircle, LayoutGrid, List, Sparkles } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
-  const [remainingImageCount, setRemainingImageCount] = useState<number>(10);
+  const { remaining, isLimitReached, incrementUsage } = useUsageLimit();
+
   const [images, setImages] = useState<ImageInfo[]>([]);
+  const [layout, setLayout] = useState<'list' | 'stacked'>('list');
 
   // Analyzes one image, updates its analysis & isAnalyzing in images state by id
   const analyzeImage = async (imageId: string, imageUrl: string) => {
@@ -56,7 +60,7 @@ export default function Home() {
   };
 
   const handleImagesAdded = async (newImages: ImageInfo[]) => {
-    if (remainingImageCount === 0) {
+    if (remaining === 0) {
       alert(
         'Daily limit reached! You can analyze 10 images per day. Come back tomorrow.'
       );
@@ -64,10 +68,10 @@ export default function Home() {
     }
 
     // Limit to remaining slots
-    const imagesToAdd = newImages.slice(0, remainingImageCount);
+    const imagesToAdd = newImages.slice(0, remaining);
     if (imagesToAdd.length < newImages.length) {
       alert(
-        `Added ${imagesToAdd.length} images (${remainingImageCount} images remaining today)`
+        `Added ${imagesToAdd.length} images (${remaining} images remaining today)`
       );
     }
 
@@ -79,8 +83,9 @@ export default function Home() {
       analysis: null,
     }));
 
-    setImages((prev) => [...prev, ...imagesWithIds]);
-    setRemainingImageCount((prev) => prev - imagesToAdd.length);
+    // Add new images to the top (prepend)
+    setImages((prev) => [...imagesWithIds, ...prev]);
+    incrementUsage();
 
     // For each added image, start analyzing in parallel (do not await all)
     imagesWithIds.forEach(({ id, imageUrl }) => {
@@ -108,19 +113,19 @@ export default function Home() {
             <Sparkles className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Image Inspiration Analyzer
+            InspoLens
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Upload images to extract colors and discover similar inspiration on
             Pinterest
           </p>
           <div className="inline-block px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-            {remainingImageCount} images remaining today
+            {remaining} images remaining today
           </div>
         </div>
 
-        {/* Rate Limit Warning */}
-        {remainingImageCount === 0 && (
+        {isLimitReached ? (
+          //  Rate Limit Warning
           <div className="max-w-2xl mx-auto mb-8 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
             <div>
@@ -133,50 +138,73 @@ export default function Home() {
               </p>
             </div>
           </div>
-        )}
-
-        {/* Upload Section */}
-        {remainingImageCount > 0 && (
+        ) : (
+          // Image Uploader
           <div className="max-w-2xl mx-auto mb-12">
             <ImageUploader
               onImagesAdded={handleImagesAdded}
-              remainingImageCount={remainingImageCount}
+              remainingImageCount={remaining}
             />
+          </div>
+        )}
+
+        {/* Layout Switcher */}
+        {images.length > 0 && (
+          <div
+            className={`flex items-center gap-x-2 justify-end ${layout === 'list' ? 'max-w-5xl mx-auto' : 'max-w-7xl'} mb-4`}
+          >
+            <Button
+              variant="destructive-outline"
+              onClick={handleRemoveAllImages}
+              className="py-5"
+            >
+              Clear All
+            </Button>
+            <div className="flex border border-stone-300 rounded-xl p-1 bg-white shadow-sm">
+              <button
+                onClick={() => setLayout('list')}
+                className={`cursor-pointer p-2 rounded-lg transition-colors flex items-center gap-1 text-sm font-medium ${layout === 'list' ? 'bg-blue-100 text-primary' : 'text-stone-400 hover:bg-stone-50'}`}
+                title="List View (Horizontal Card)"
+              >
+                <List className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setLayout('stacked')}
+                className={`cursor-pointer p-2 rounded-lg transition-colors flex items-center gap-1 text-sm font-medium ${layout === 'stacked' ? 'bg-blue-100 text-primary' : 'text-stone-400 hover:bg-stone-50'}`}
+                title="Stacked View (Vertical Card / Grid)"
+              >
+                <LayoutGrid className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         )}
 
         {/* Images Grid */}
         {images.length > 0 && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold text-center flex-1">
-                Your Images
-              </h2>
-              <button
-                className="ml-4 px-4 py-2 rounded-md bg-red-100 text-red-700 hover:bg-red-200 transition text-sm font-medium"
-                onClick={handleRemoveAllImages}
-                type="button"
-              >
-                Remove All
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {images.map(
-                (image) =>
-                  image.imageUrl && (
-                    <ImageAnalysisCard
-                      key={image.id}
-                      image={image}
-                      onRemove={() => handleRemoveImage(image.id)}
-                    />
-                  )
-              )}
+            <div
+              className={`
+          ${
+            layout === 'stacked'
+              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' // Stacked (Grid) view, spread out
+              : 'grid grid-cols-1 gap-8 max-w-5xl mx-auto' // List view (Single column, constrained)
+          }
+        `}
+            >
+              {images.map((image) => (
+                <AnalysisCard
+                  key={image.id}
+                  image={image}
+                  onRemove={() => handleRemoveImage(image.id)}
+                  layout={layout}
+                />
+              ))}
             </div>
           </div>
         )}
 
         {/* Empty State */}
-        {images.length === 0 && remainingImageCount > 0 && (
+        {images.length === 0 && remaining > 0 && (
           <div className="text-center py-12 text-gray-500">
             <p>Upload your first image to get started</p>
           </div>
