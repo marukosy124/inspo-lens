@@ -121,7 +121,7 @@ const AnalysisCard = ({ image, onRemove, layout }: AnalysisCardProps) => {
   // Content padding
   const contentPadding = layout === 'list' ? 'p-6 sm:p-8' : 'p-4';
 
-  const { imageUrl, analysis, isAnalyzing, error } = image;
+  const { imageUrl, proxyUrl, analysis, isAnalyzing, error } = image;
   const [copied, setCopied] = useState<string | null>(null);
 
   const openPinterestSearch = (query: string) => {
@@ -194,7 +194,7 @@ const AnalysisCard = ({ image, onRemove, layout }: AnalysisCardProps) => {
         style={{ minHeight: '8rem' }} // for fill layout fallback (optional, keeps box filled)
       >
         <Image
-          src={imageUrl}
+          src={proxyUrl ?? imageUrl}
           alt={analysis?.searchTerm ? analysis.searchTerm : 'Analyzed'}
           fill
           sizes="100vw"
@@ -205,7 +205,7 @@ const AnalysisCard = ({ image, onRemove, layout }: AnalysisCardProps) => {
         />
         {/* Move Remove button to top left */}
         <Button
-          size="sm"
+          size="icon"
           onClick={onRemove}
           className="absolute top-3 left-3 p-2 bg-stone-100 hover:bg-stone-100 text-stone-400 hover:text-stone-600 rounded-full transition-colors z-20 cursor-pointer"
           aria-label="Remove image"

@@ -5,7 +5,6 @@ import { Upload, LinkIcon, Loader2 } from 'lucide-react';
 import { PutBlobResult } from '@vercel/blob';
 import { cn, generateId } from '@/lib/utils';
 import { ImageInfo } from '@/lib/types';
-import { env } from '@/lib/env';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -37,10 +36,7 @@ const ImageUploader = ({
   const [inputError, setInputError] = useState<string | null>(null);
 
   const getProxyUrl = (imageUrl: string) => {
-    // only use proxy url on dev
-    return env.APP_ENV === 'dev'
-      ? `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`
-      : imageUrl;
+    return `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`;
   };
 
   const uploadImage = async (file: File) => {
@@ -270,7 +266,7 @@ const ImageUploader = ({
           <div className="flex-1 relative">
             <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              placeholder="Paste image URL (must start with http:// or https://)"
+              placeholder="Paste image URL"
               value={urlInput}
               onChange={onInputChange}
               className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
@@ -290,9 +286,6 @@ const ImageUploader = ({
           <Button onClick={handleUrlSubmit} disabled={disableAddButton}>
             Add URL
           </Button>
-        </div>
-        <div className="text-xs text-gray-500 pl-1 pt-1">
-          Only a single image URL is allowed. Supported schemes: http(s) only.
         </div>
       </div>
     </div>

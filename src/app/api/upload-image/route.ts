@@ -1,4 +1,5 @@
 import { put } from '@vercel/blob';
+import { format } from 'date-fns';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request): Promise<NextResponse> {
@@ -11,7 +12,9 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!request.body)
     return NextResponse.json({ error: 'Missing file' }, { status: 500 });
 
-  const blob = await put(filename, request.body, {
+  const folderName = format(new Date(), 'yyyyMMdd');
+
+  const blob = await put(`${folderName}/${filename}`, request.body, {
     access: 'public',
     addRandomSuffix: true,
   });
