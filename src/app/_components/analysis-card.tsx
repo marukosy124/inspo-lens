@@ -1,4 +1,4 @@
-import CustomTooltip from '@/components/common/custom-tooltip';
+import CustomTooltip from '@/components/custom-tooltip';
 import { Button } from '@/components/ui/button';
 import { ImageInfo } from '@/lib/types';
 import { Check, Copy, Loader2, X } from 'lucide-react';
@@ -110,16 +110,16 @@ const ColorExtractor = ({
 const AnalysisCard = ({ image, onRemove, layout }: AnalysisCardProps) => {
   // Determine the main card layout classes
   const containerClasses =
-    layout === 'list' ? 'flex flex-col sm:flex-row' : 'flex flex-col';
+    layout === 'list' ? 'flex flex-col md:flex-row' : 'flex flex-col';
 
   // Image container sizing
   const imageContainerClasses =
     layout === 'list'
-      ? 'relative h-64 sm:h-auto sm:w-96'
+      ? 'relative h-64 md:h-auto md:w-96'
       : 'relative h-48 w-full';
 
   // Content padding
-  const contentPadding = layout === 'list' ? 'p-6 sm:p-8' : 'p-4';
+  const contentPadding = layout === 'list' ? 'p-6 md:p-8' : 'p-4';
 
   const { imageUrl, proxyUrl, analysis, isAnalyzing, error } = image;
   const [copied, setCopied] = useState<string | null>(null);
@@ -205,7 +205,7 @@ const AnalysisCard = ({ image, onRemove, layout }: AnalysisCardProps) => {
         />
         {/* Move Remove button to top left */}
         <Button
-          size="icon"
+          size="icon-sm"
           onClick={onRemove}
           className="absolute top-3 left-3 p-2 bg-stone-100 hover:bg-stone-100 text-stone-400 hover:text-stone-600 rounded-full transition-colors z-20 cursor-pointer"
           aria-label="Remove image"
@@ -254,7 +254,7 @@ const AnalysisCard = ({ image, onRemove, layout }: AnalysisCardProps) => {
                 <div className="flex items-start gap-2">
                   <button
                     onClick={() => openPinterestSearch(analysis.searchTerm)}
-                    className="text-lg sm:text-xl text-stone-900 font-bold flex-1 wrap-break-word text-left hover:underline transition-colors cursor-pointer"
+                    className="text-lg md:text-xl text-stone-900 font-bold flex-1 wrap-break-word text-left hover:underline transition-colors cursor-pointer"
                     title={`Search Pinterest for "${analysis.searchTerm}"`}
                   >
                     {analysis.searchTerm}

@@ -5,7 +5,7 @@ export default function useIsTabletOrSmaller() {
 
   useEffect(() => {
     const update = () => {
-      setIsTabletOrSmaller(window.innerWidth <= 640);
+      setIsTabletOrSmaller(window.innerWidth <= 768);
     };
     update();
     window.addEventListener('resize', update);
