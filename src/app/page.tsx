@@ -5,14 +5,24 @@ import ImageUploader from '@/components/common/image-uploader';
 import { useUsageLimit } from '@/hooks/use-usage-limit';
 import { ImageInfo, ImageAnalysis } from '@/lib/types';
 import { AlertCircle, LayoutGrid, List, Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import useIsTabletOrSmaller from '@/hooks/use-is-tablet-or-smaller';
 
 export default function Home() {
   const { remaining, isLimitReached, incrementUsage } = useUsageLimit();
 
   const [images, setImages] = useState<ImageInfo[]>([]);
   const [layout, setLayout] = useState<'list' | 'stacked'>('list');
+
+  const isTabletOrSmaller = useIsTabletOrSmaller();
+
+  // Force layout to list on tablet size or smaller and prevent changing
+  useEffect(() => {
+    if (isTabletOrSmaller && layout !== 'list') {
+      setLayout('list');
+    }
+  }, [isTabletOrSmaller, layout]);
 
   // Analyzes one image, updates its analysis & isAnalyzing in images state by id
   const analyzeImage = async (imageId: string, imageUrl: string) => {
@@ -150,31 +160,37 @@ export default function Home() {
 
         {/* Layout Switcher */}
         {images.length > 0 && (
-          <div
-            className={`flex items-center gap-x-2 justify-end ${layout === 'list' ? 'max-w-5xl mx-auto' : 'max-w-7xl'} mb-4`}
-          >
-            <Button
-              variant="destructive-outline"
-              onClick={handleRemoveAllImages}
-              className="py-5"
+          <div>
+            {/* Layout Switcher is hidden on tablet or smaller */}
+            <div
+              className={`flex items-center gap-x-2 justify-end md:justify-between ${layout === 'list' ? 'max-w-5xl mx-auto' : 'max-w-7xl'} mb-4`}
             >
-              Clear All
-            </Button>
-            <div className="flex border border-stone-300 rounded-xl p-1 bg-white shadow-sm">
-              <button
-                onClick={() => setLayout('list')}
-                className={`cursor-pointer p-2 rounded-lg transition-colors flex items-center gap-1 text-sm font-medium ${layout === 'list' ? 'bg-blue-100 text-primary' : 'text-stone-400 hover:bg-stone-50'}`}
-                title="List View (Horizontal Card)"
+              {!isTabletOrSmaller && (
+                <div className="flex border border-stone-300 rounded-md p-1 bg-white shadow-sm">
+                  <button
+                    onClick={() => setLayout('list')}
+                    className={`cursor-pointer p-1 rounded-sm transition-colors flex items-center gap-1 text-sm font-medium ${layout === 'list' ? 'bg-blue-100 text-primary' : 'text-stone-400 hover:bg-stone-50'}`}
+                    title="List View (Horizontal Card)"
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setLayout('stacked')}
+                    className={`cursor-pointer p-1 rounded-sm transition-colors flex items-center gap-1 text-sm font-medium ${layout === 'stacked' ? 'bg-blue-100 text-primary' : 'text-stone-400 hover:bg-stone-50'}`}
+                    title="Stacked View (Vertical Card / Grid)"
+                    disabled={isTabletOrSmaller}
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              <Button
+                variant="destructive-outline"
+                onClick={handleRemoveAllImages}
+                size="sm"
               >
-                <List className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setLayout('stacked')}
-                className={`cursor-pointer p-2 rounded-lg transition-colors flex items-center gap-1 text-sm font-medium ${layout === 'stacked' ? 'bg-blue-100 text-primary' : 'text-stone-400 hover:bg-stone-50'}`}
-                title="Stacked View (Vertical Card / Grid)"
-              >
-                <LayoutGrid className="w-5 h-5" />
-              </button>
+                Clear All
+              </Button>
             </div>
           </div>
         )}
@@ -186,8 +202,8 @@ export default function Home() {
               className={`
           ${
             layout === 'stacked'
-              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' // Stacked (Grid) view, spread out
-              : 'grid grid-cols-1 gap-8 max-w-5xl mx-auto' // List view (Single column, constrained)
+              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+              : 'grid grid-cols-1 gap-8 max-w-5xl mx-auto'
           }
         `}
             >
