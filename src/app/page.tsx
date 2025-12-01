@@ -4,10 +4,11 @@ import AnalysisCard from '@/app/_components/analysis-card';
 import ImageUploader from '@/app/_components/image-uploader';
 import { useUsageLimit } from '@/hooks/use-usage-limit';
 import { ImageInfo, ImageAnalysis } from '@/lib/types';
-import { AlertCircle, LayoutGrid, List, Sparkles } from 'lucide-react';
+import { AlertCircle, LayoutGrid, List } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import useIsTabletOrSmaller from '@/hooks/use-is-tablet-or-smaller';
+import Header from '@/components/header';
 
 export default function Home() {
   const { remaining, isLimitReached, incrementUsage } = useUsageLimit();
@@ -116,20 +117,23 @@ export default function Home() {
   const containerMaxWidth = isTabletOrSmaller ? 'max-w-5xl' : 'max-w-7xl';
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 via-blue-50 to-purple-50 px-5">
-      <div className={`container mx-auto px-4 py-12 ${containerMaxWidth}`}>
+    <>
+      <Header />
+      <div
+        className={`flex-1 container mx-auto px-5 md:px-10 py-12 ${containerMaxWidth}`}
+      >
         <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr] gap-8 mb-10">
           {/* Left Side: Name, punchline, quota */}
           <div className="flex flex-col justify-center space-y-4 md:pr-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-blue-500 to-purple-500 shadow-lg mb-4">
+            {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-blue-500 to-purple-500 shadow-lg mb-4">
               <Sparkles className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              InspoLens
+            </div> */}
+            <h1 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent pb-3">
+              Unlock your visual story.
             </h1>
             <p className="text-lg text-gray-600 max-w-xl">
-              Upload images to extract visual elements and discover similar
-              inspiration on Pinterest
+              Extract visual elements from your images, discover similar
+              inspiration on Pinterest.
             </p>
             <div className="inline-block px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mt-4">
               {remaining} images remaining today
@@ -137,6 +141,7 @@ export default function Home() {
           </div>
 
           {/* Right Side: Uploader or limit warning; wider */}
+          {/* TODO: make the alert on top of the disabled and blurred uploader instead */}
           <div className="flex items-center h-full">
             <div className="w-full">
               {isLimitReached ? (
@@ -205,12 +210,12 @@ export default function Home() {
               <div className="space-y-6">
                 <div
                   className={`
-          ${
-            layout === 'stacked'
-              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
-              : 'grid grid-cols-1 gap-8 max-w-7xl mx-auto'
-          }
-        `}
+            ${
+              layout === 'stacked'
+                ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
+                : 'grid grid-cols-1 gap-8 max-w-7xl mx-auto'
+            }
+          `}
                 >
                   {images.map((image) => (
                     <AnalysisCard
@@ -233,6 +238,6 @@ export default function Home() {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }
