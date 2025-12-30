@@ -9,7 +9,8 @@ import useColorThief from 'use-color-thief';
 interface AnalysisCardProps {
   image: ImageInfo;
   layout: 'list' | 'stacked';
-  onRemove: () => void;
+  showRemove?: boolean;
+  onRemove?: () => void;
 }
 
 interface CopyAllButtonProps {
@@ -107,7 +108,12 @@ const ColorExtractor = ({
   );
 };
 
-const AnalysisCard = ({ image, onRemove, layout }: AnalysisCardProps) => {
+const AnalysisCard = ({
+  image,
+  onRemove,
+  layout,
+  showRemove = true,
+}: AnalysisCardProps) => {
   // Determine the main card layout classes
   const containerClasses =
     layout === 'list' ? 'flex flex-col md:flex-row' : 'flex flex-col';
@@ -204,15 +210,17 @@ const AnalysisCard = ({ image, onRemove, layout }: AnalysisCardProps) => {
           priority
         />
         {/* Move Remove button to top left */}
-        <Button
-          size="icon-sm"
-          onClick={onRemove}
-          className="absolute top-3 left-3 p-2 bg-stone-100 hover:bg-stone-100 text-stone-400 hover:text-stone-600 rounded-full transition-colors z-20 cursor-pointer"
-          aria-label="Remove image"
-          tabIndex={0}
-        >
-          <X className="w-4 h-4" />
-        </Button>
+        {showRemove && (
+          <Button
+            size="icon-sm"
+            onClick={onRemove}
+            className="absolute top-3 left-3 p-2 bg-stone-100 hover:bg-stone-100 text-stone-400 hover:text-stone-600 rounded-full transition-colors z-20 cursor-pointer"
+            aria-label="Remove image"
+            tabIndex={0}
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        )}
 
         {isAnalyzing && (
           <div className="absolute inset-0 flex items-center justify-center flex-col gap-3 z-10">

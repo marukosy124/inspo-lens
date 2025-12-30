@@ -9,12 +9,14 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import useIsTabletOrSmaller from '@/hooks/use-is-tablet-or-smaller';
 import Header from '@/components/header';
+import { exampleImage } from '@/lib/constants';
 
 export default function Home() {
   const { remaining, isLimitReached, incrementUsage } = useUsageLimit();
 
   const [images, setImages] = useState<ImageInfo[]>([]);
   const [layout, setLayout] = useState<'list' | 'stacked'>('list');
+  const [showExample, setShowExample] = useState<boolean>(true);
 
   const isTabletOrSmaller = useIsTabletOrSmaller();
 
@@ -22,6 +24,11 @@ export default function Home() {
   useEffect(() => {
     if (isTabletOrSmaller) setLayout('list');
   }, [isTabletOrSmaller]);
+
+  // Hide example if images are added
+  useEffect(() => {
+    if (images.length > 0 && showExample) setShowExample(false);
+  }, [images, showExample]);
 
   // Analyzes one image, updates its analysis & isAnalyzing in images state by id
   const analyzeImage = async (imageId: string, imageUrl: string) => {
@@ -69,6 +76,7 @@ export default function Home() {
   };
 
   const handleImagesAdded = async (newImages: ImageInfo[]) => {
+    setShowExample(false);
     if (remaining === 0) {
       alert(
         'Daily limit reached! You can analyze 10 images per day. Come back tomorrow.'
@@ -108,12 +116,11 @@ export default function Home() {
     setImages((prev) => prev.filter((img) => img.id !== id));
   };
 
-  // New: Remove all images
   const handleRemoveAllImages = () => {
     setImages([]);
+    setShowExample(true);
   };
 
-  // Decide max width: always max-w-xl if tablet or smaller, max-w-7xl otherwise
   const containerMaxWidth = isTabletOrSmaller ? 'max-w-5xl' : 'max-w-7xl';
 
   return (
@@ -125,14 +132,11 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr] gap-8 mb-10">
           {/* Left Side: Name, punchline, quota */}
           <div className="flex flex-col justify-center space-y-4 md:pr-10">
-            {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-blue-500 to-purple-500 shadow-lg mb-4">
-              <Sparkles className="w-8 h-8 text-white" />
-            </div> */}
             <h1 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent pb-3">
               Unlock your visual story.
             </h1>
             <p className="text-lg text-gray-600 max-w-xl">
-              Extract visual elements from your images, discover similar
+              Extract visual elements from your images, and discover similar
               inspiration on Pinterest.
             </p>
             <div className="inline-block px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mt-4">
@@ -172,7 +176,7 @@ export default function Home() {
         </div>
 
         {/* Layout Switcher */}
-        {images.length > 0 && (
+        {(images.length > 0 || showExample) && (
           <div>
             {/* Layout Switcher is hidden on tablet or smaller */}
             <div
@@ -197,16 +201,18 @@ export default function Home() {
                   </button>
                 </div>
               )}
-              <Button
-                variant="destructive-outline"
-                onClick={handleRemoveAllImages}
-                size="sm"
-              >
-                Clear All
-              </Button>
+              {!showExample && (
+                <Button
+                  variant="destructive-outline"
+                  onClick={handleRemoveAllImages}
+                  size="sm"
+                >
+                  Clear All
+                </Button>
+              )}
             </div>
             {/* Images Grid */}
-            {images.length > 0 && (
+            {(images.length > 0 || showExample) && (
               <div className="space-y-6">
                 <div
                   className={`
@@ -217,6 +223,7 @@ export default function Home() {
             }
           `}
                 >
+                  {/* Render actual images (if any) */}
                   {images.map((image) => (
                     <AnalysisCard
                       key={image.id}
@@ -225,6 +232,21 @@ export default function Home() {
                       layout={layout}
                     />
                   ))}
+                  {/* Example card if no uploaded images */}
+                  {images.length === 0 && showExample && (
+                    <div className="relative">
+                      <div className="absolute top-0 left-0 right-0 flex justify-center z-10">
+                        <div className="bg-primary text-white px-3 py-1 rounded-b-lg text-xs font-semibold mb-[-8px] shadow-lg">
+                          Example
+                        </div>
+                      </div>
+                      <AnalysisCard
+                        image={exampleImage}
+                        layout={layout}
+                        showRemove={false}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -232,9 +254,9 @@ export default function Home() {
         )}
 
         {/* Empty State */}
-        {images.length === 0 && remaining > 0 && (
+        {images.length === 0 && !showExample && remaining > 0 && (
           <div className="text-center py-12 text-gray-500">
-            <p>Upload your first image to get started</p>
+            <p>Upload your image to get started!</p>
           </div>
         )}
       </div>
