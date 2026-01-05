@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import useIsTabletOrSmaller from '@/hooks/use-is-tablet-or-smaller';
 import Header from '@/components/header';
 import { exampleImage } from '@/lib/constants';
+import { extractColors } from '@/lib/color-extractor';
 
 export default function Home() {
   const { remaining, isLimitReached, incrementUsage } = useUsageLimit();
@@ -31,18 +32,32 @@ export default function Home() {
   }, [images, showExample]);
 
   // Analyzes one image, updates its analysis & isAnalyzing in images state by id
-  const analyzeImage = async (imageId: string, imageUrl: string) => {
+  const analyzeImage = async (
+    imageId: string,
+    imageUrl: string,
+    proxyUrl: string
+  ) => {
+    const colors = (await extractColors(proxyUrl, 8)).slice(0, 5); // only get the top 5 colors
+
     try {
       setImages((prev) =>
         prev.map((img) =>
-          img.id === imageId ? { ...img, isAnalyzing: true } : img
+          img.id === imageId
+            ? {
+                ...img,
+                isAnalyzing: true,
+              }
+            : img
         )
       );
 
       const res = await fetch('/api/analyze-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl }),
+        body: JSON.stringify({
+          imageUrl,
+          colors,
+        }),
       });
 
       if (!res.ok) {
@@ -105,8 +120,8 @@ export default function Home() {
     incrementUsage();
 
     // For each added image, start analyzing in parallel (do not await all)
-    imagesWithIds.forEach(({ id, imageUrl }) => {
-      if (imageUrl) analyzeImage(id, imageUrl);
+    imagesWithIds.forEach(({ id, imageUrl, proxyUrl }) => {
+      if (imageUrl && proxyUrl) analyzeImage(id, imageUrl, proxyUrl);
     });
 
     // For reference: could add incrementUsage logic here, etc.

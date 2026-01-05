@@ -2,9 +2,11 @@ import { openai } from '@/lib/openai';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { zodTextFormat } from 'openai/helpers/zod';
+import { capitalize } from '@/lib/utils';
+import { ExtractedColor } from '@/lib/color-extractor';
 
 const prompt = `
-Given an image, analyze its visual content and return the following:
+Given an image and its colors, analyze its visual content and return the following:
 
 1. Description:
 - Write 1-3 concise, precise sentence directly describing the main visual content of the image.
@@ -19,21 +21,47 @@ Given an image, analyze its visual content and return the following:
 - Use only lowercase single words or short phrases (no sentences).
 - Do not include redundant plural/singular variations unless contextually distinct.
 
-3. SearchTerm:
+3. Search term:
 - Return a single, short one-line search term summarizing the image, optimized for quick searching.
 
+4. Color names:
+- Return the name for each given color.
+- If no colors are provided, return up to 5 dominant colors from the image, including their hex codes and names.
+
 ## Output Format (in JSON):
-{ description: string, keywords: string[], searchTerm: string }
+{ description: string, keywords: string[], searchTerm: string, colors: [{ hex: string, name: string }] }
 `;
 
 const AnalysisResponse = z.object({
   description: z.string(),
   keywords: z.array(z.string()),
   searchTerm: z.string(),
+  colors: z.array(z.object({ hex: z.string(), name: z.string() })),
 });
 
+function mergeColorsWithNames(
+  namedColors: { hex: string; name: string }[],
+  extractedColors: ExtractedColor[]
+) {
+  const nameMap = new Map();
+  namedColors.forEach((color) => {
+    const hex = color.hex.toLowerCase();
+    nameMap.set(hex, capitalize(color.name)); // capitialize the name
+  });
+
+  return extractedColors.map((color) => {
+    const hexLower = color.hex.toLowerCase();
+    const name = nameMap.get(hexLower);
+
+    return {
+      ...color,
+      name: name || null,
+    };
+  });
+}
+
 export async function POST(request: Request) {
-  const { imageUrl } = await request.json();
+  const { imageUrl, colors } = await request.json();
 
   if (!imageUrl || !imageUrl.startsWith('https://')) {
     return NextResponse.json(
@@ -60,6 +88,10 @@ export async function POST(request: Request) {
           content: [
             { type: 'input_text', text: prompt },
             {
+              type: 'input_text',
+              text: `colors: ${colors.map((color: ExtractedColor) => color.hex).join(', ')}`,
+            },
+            {
               type: 'input_image',
               image_url: imageDataUrl,
               detail: 'auto',
@@ -72,12 +104,18 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(response.output_parsed);
+    const result = response.output_parsed;
+    // add color names to original extracted colors array; use AI analyed color if no original colors are given
+    if (result?.colors) {
+      result.colors =
+        colors.length > 0
+          ? mergeColorsWithNames(result.colors, colors)
+          : result.colors;
+    }
+
+    return NextResponse.json(result);
   } catch (error) {
-    console.error('Keyword extraction error:', error);
-    return NextResponse.json(
-      { error: 'Failed to extract keywords' },
-      { status: 500 }
-    );
+    console.error('Image analysis error:', error);
+    return NextResponse.json({ error: 'Failed to analyze' }, { status: 500 });
   }
 }

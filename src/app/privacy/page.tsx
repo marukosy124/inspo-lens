@@ -112,8 +112,7 @@ export default function PrivacyPage() {
               That&apos;s It
             </h2>
             <p className="text-gray-700 leading-relaxed">
-              This is just a hobby project. No accounts, no tracking, no
-              complicated data practices.
+              No accounts, no tracking, no complicated data practices.
             </p>
           </section>
         </article>

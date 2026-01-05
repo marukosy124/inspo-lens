@@ -284,7 +284,7 @@ const ImageUploader = ({
             )}
           </div>
           <Button onClick={handleUrlSubmit} disabled={disableAddButton}>
-            Add URL
+            Submit
           </Button>
         </div>
       </div>

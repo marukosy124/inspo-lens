@@ -1,10 +1,9 @@
 import CustomTooltip from '@/components/custom-tooltip';
 import { Button } from '@/components/ui/button';
-import { ImageInfo } from '@/lib/types';
+import { Color, ImageInfo } from '@/lib/types';
 import { Check, Copy, Loader2, X } from 'lucide-react';
 import Image from 'next/image';
 import { useState, MouseEvent } from 'react';
-import useColorThief from 'use-color-thief';
 
 interface AnalysisCardProps {
   image: ImageInfo;
@@ -44,32 +43,27 @@ const CopyAllButton = ({
 };
 
 interface ColorExtractorProps {
-  imageUrl: string;
+  colors: Color[];
   copied: string | null;
   onCopy: (key: string, value: string) => void;
   onPinterstSearch: (hex: string) => void;
 }
 
-const ColorExtractor = ({
-  imageUrl,
+const ColorPalette = ({
+  colors,
   copied,
   onCopy,
   onPinterstSearch,
 }: ColorExtractorProps) => {
-  const { palette } = useColorThief(imageUrl, {
-    format: 'hex',
-    colorCount: 5,
-    quality: 10,
-  });
-
-  const validColors = palette.filter((hex) => typeof hex === 'string');
-  const allColorsString = validColors.join(', ');
+  const allColorsString = colors
+    .map((color) => `${color.hex} ${color.name}`)
+    .join(', ');
 
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
         <div className="text-xs font-bold text-stone-400">Colors</div>
-        {validColors.length > 0 && (
+        {colors.length > 0 && (
           <CopyAllButton
             buttonKey="allColors"
             label="Copy all colors"
@@ -79,30 +73,35 @@ const ColorExtractor = ({
         )}
       </div>
       <div className="flex gap-3 flex-wrap">
-        {validColors.map((hex, idx) => (
-          <div key={idx} className="relative group/color">
-            <button
-              onClick={() => onPinterstSearch(hex)}
-              className="w-10 h-10 rounded-full shadow-sm ring-1 ring-black/5 hover:scale-110 transition-transform block cursor-pointer"
-              style={{ backgroundColor: hex }}
-              title={`Search Pinterest for ${hex}`}
-            />
-            <button
-              onClick={() => onCopy(`color-${hex}`, hex)}
-              className="cursor-pointer absolute -top-2 -right-2 p-1 bg-white rounded-full border border-stone-200 text-stone-400 hover:text-stone-600 opacity-0 group-hover/color:opacity-100 transition-opacity shadow-sm"
-              title="Copy hex code"
-            >
-              {copied === `color-${hex}` ? (
-                <Check className="w-3 h-3 text-green-500" />
-              ) : (
-                <Copy className="w-3 h-3" />
-              )}
-            </button>
-            <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-stone-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/color:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
-              {hex}
-            </span>
-          </div>
-        ))}
+        {colors.map((color, idx) => {
+          const colorLabel = `${color.hex} ${color.name}`;
+          return (
+            <div key={idx} className="relative group/color">
+              <button
+                onClick={() => onPinterstSearch(colorLabel)}
+                className="w-10 h-10 rounded-full shadow-sm ring-1 ring-black/5 hover:scale-110 transition-transform block cursor-pointer"
+                style={{ backgroundColor: color.hex }}
+                title={`Search Pinterest for ${colorLabel}`}
+              />
+              <button
+                onClick={() => onCopy(`color-${color.hex}`, colorLabel)}
+                className="cursor-pointer absolute -top-2 -right-2 p-1 bg-white rounded-full border border-stone-200 text-stone-400 hover:text-stone-600 opacity-0 group-hover/color:opacity-100 transition-opacity shadow-sm"
+                title="Copy hex code"
+              >
+                {copied === `color-${color.hex}` ? (
+                  <Check className="w-3 h-3 text-green-500" />
+                ) : (
+                  <Copy className="w-3 h-3" />
+                )}
+              </button>
+              <span className="text-center absolute -bottom-8 left-1/2 -translate-x-1/2 bg-stone-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/color:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
+                {color.hex}
+                <br />
+                {color.name}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -277,9 +276,9 @@ const AnalysisCard = ({
               )}
 
               {/* 2. Colors */}
-              {imageUrl && (
-                <ColorExtractor
-                  imageUrl={imageUrl}
+              {imageUrl && analysis?.colors && (
+                <ColorPalette
+                  colors={analysis.colors}
                   copied={copied}
                   onCopy={handleCopy}
                   onPinterstSearch={openPinterestSearch}

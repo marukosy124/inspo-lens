@@ -35,10 +35,7 @@ export default function TermsPage() {
           </header>
 
           <section className="space-y-5 text-gray-700 leading-relaxed">
-            <p>
-              InspoLens is a personal hobby project. By using it, you agree to
-              these simple terms.
-            </p>
+            <p>By using InspoLens, you agree to these simple terms.</p>
 
             <div className="space-y-3">
               <h2 className="font-semibold text-lg">Permitted Use</h2>
