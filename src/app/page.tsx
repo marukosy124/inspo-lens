@@ -148,11 +148,11 @@ export default function Home() {
           {/* Left Side: Name, punchline, quota */}
           <div className="flex flex-col justify-center space-y-4 md:pr-10">
             <h1 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent pb-3">
-              Unlock your visual story.
+              One Image, Many Ideas.
             </h1>
             <p className="text-lg text-gray-600 max-w-xl">
-              Extract visual elements from your images, and discover similar
-              inspiration on Pinterest.
+              Turn visuals into keywords, colors, and directions you can
+              explore.
             </p>
             <div className="inline-block px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mt-4">
               {remaining} images remaining today

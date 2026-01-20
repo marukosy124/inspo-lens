@@ -37,9 +37,9 @@ export default function PrivacyPage() {
               What This Tool Does
             </h2>
             <p className="text-gray-700 leading-relaxed">
-              InspoLens is a simple tool that helps you find Pinterest
-              inspiration. You upload an image, and it extracts visual elements
-              (colors, keywords, descriptions) to help you search Pinterest more
+              InspoLens is a simple tool that helps you find visual inspiration.
+              You upload an image, and it extracts visual elements (colors,
+              keywords, descriptions) to help you discover inspirations more
               effectively.
             </p>
           </section>

@@ -46,15 +46,9 @@ interface ColorExtractorProps {
   colors: Color[];
   copied: string | null;
   onCopy: (key: string, value: string) => void;
-  onPinterstSearch: (hex: string) => void;
 }
 
-const ColorPalette = ({
-  colors,
-  copied,
-  onCopy,
-  onPinterstSearch,
-}: ColorExtractorProps) => {
+const ColorPalette = ({ colors, copied, onCopy }: ColorExtractorProps) => {
   const allColorsString = colors
     .map((color) => `${color.hex} ${color.name}`)
     .join(', ');
@@ -78,22 +72,18 @@ const ColorPalette = ({
           return (
             <div key={idx} className="relative group/color">
               <button
-                onClick={() => onPinterstSearch(colorLabel)}
+                onClick={() => onCopy(`color-${color.hex}`, colorLabel)}
                 className="w-10 h-10 rounded-full shadow-sm ring-1 ring-black/5 hover:scale-110 transition-transform block cursor-pointer"
                 style={{ backgroundColor: color.hex }}
-                title={`Search Pinterest for ${colorLabel}`}
+                title={`Click to copy ${colorLabel}`}
               />
-              <button
-                onClick={() => onCopy(`color-${color.hex}`, colorLabel)}
-                className="cursor-pointer absolute -top-2 -right-2 p-1 bg-white rounded-full border border-stone-200 text-stone-400 hover:text-stone-600 opacity-0 group-hover/color:opacity-100 transition-opacity shadow-sm"
-                title="Copy hex code"
-              >
+              <span className="absolute -top-2 -right-2 p-1 bg-white rounded-full border border-stone-200 text-stone-400 opacity-0 group-hover/color:opacity-100 transition-opacity shadow-sm">
                 {copied === `color-${color.hex}` ? (
                   <Check className="w-3 h-3 text-green-500" />
                 ) : (
                   <Copy className="w-3 h-3" />
                 )}
-              </button>
+              </span>
               <span className="text-center absolute -bottom-8 left-1/2 -translate-x-1/2 bg-stone-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/color:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
                 {color.hex}
                 <br />
@@ -128,11 +118,6 @@ const AnalysisCard = ({
 
   const { imageUrl, proxyUrl, analysis, isAnalyzing, error } = image;
   const [copied, setCopied] = useState<string | null>(null);
-
-  const openPinterestSearch = (query: string) => {
-    const url = `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(query)}`;
-    window.open(url, '_blank');
-  };
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -258,14 +243,10 @@ const AnalysisCard = ({
             <div className="space-y-5">
               {/* 1. Search Term as Title */}
               {analysis?.searchTerm && (
-                <div className="flex items-start gap-2">
-                  <button
-                    onClick={() => openPinterestSearch(analysis.searchTerm)}
-                    className="text-lg md:text-xl text-stone-900 font-bold flex-1 wrap-break-word text-left hover:underline transition-colors cursor-pointer"
-                    title={`Search Pinterest for "${analysis.searchTerm}"`}
-                  >
+                <div className="flex items-baseline gap-2">
+                  <p className="text-lg md:text-xl text-stone-900 font-bold flex-1 wrap-break-word text-left transition-colors">
                     {analysis.searchTerm}
-                  </button>
+                  </p>
                   <CopyAllButton
                     buttonKey="searchTerm"
                     label="Copy search term"
@@ -281,7 +262,6 @@ const AnalysisCard = ({
                   colors={analysis.colors}
                   copied={copied}
                   onCopy={handleCopy}
-                  onPinterstSearch={openPinterestSearch}
                 />
               )}
 
@@ -305,22 +285,18 @@ const AnalysisCard = ({
                     {analysis.keywords.map((keyword, idx) => (
                       <div key={idx} className="relative group/keyword">
                         <button
-                          onClick={() => openPinterestSearch(keyword)}
+                          onClick={() => handleCopy(`keyword-${idx}`, keyword)}
                           className="px-3 py-1.5 bg-stone-50 hover:bg-stone-100 border border-stone-100 text-stone-600 text-sm rounded-lg transition-colors wrap-break-word max-w-full cursor-pointer"
                         >
                           {keyword}
                         </button>
-                        <button
-                          onClick={() => handleCopy(`keyword-${idx}`, keyword)}
-                          className="absolute -top-2 -right-2 p-1 bg-white rounded-full border border-stone-200 text-stone-400 hover:text-stone-600 opacity-0 group-hover/keyword:opacity-100 transition-opacity shadow-sm cursor-pointer"
-                          title="Copy keyword"
-                        >
+                        <span className="absolute -top-2 -right-2 p-1 bg-white rounded-full border border-stone-200 text-stone-400  opacity-0 group-hover/keyword:opacity-100 transition-opacity shadow-sm cursor-pointer">
                           {copied === `keyword-${idx}` ? (
                             <Check className="w-3 h-3 text-green-500" />
                           ) : (
                             <Copy className="w-3 h-3" />
                           )}
-                        </button>
+                        </span>
                       </div>
                     ))}
                   </div>

@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'InspoLens',
   description:
-    'Unlock your visual story. Extract visual elements from your images, discover similar inspiration on Pinterest.',
+    'One image, many ideas. Turn visuals into keywords, colors, and directions you can explore.',
 };
 
 export default function RootLayout({
