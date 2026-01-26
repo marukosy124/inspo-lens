@@ -12,6 +12,9 @@ import Header from '@/components/header';
 import { exampleImage } from '@/lib/constants';
 import { extractColors } from '@/lib/color-extractor';
 
+//  TODO: ADD SAVE BTN
+// TODO: USE SUPBASE AUTH INSYTEAD
+
 export default function Home() {
   const { remaining, isLimitReached, incrementUsage } = useUsageLimit();
 
@@ -66,6 +69,7 @@ export default function Home() {
       }
 
       const result: ImageAnalysis = await res.json();
+      // TODO: SAVE RESULT TO DB
 
       setImages((prev) =>
         prev.map((img) =>
@@ -140,38 +144,37 @@ export default function Home() {
 
   return (
     <>
-      <Header />
       <div
-        className={`flex-1 container mx-auto px-5 md:px-10 py-12 ${containerMaxWidth}`}
+        className={`container mx-auto flex-1 px-5 py-12 md:px-10 ${containerMaxWidth}`}
       >
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr] gap-8 mb-10">
+        <div className="mb-10 grid grid-cols-1 gap-8 md:grid-cols-[1fr_1.4fr]">
           {/* Left Side: Name, punchline, quota */}
           <div className="flex flex-col justify-center space-y-4 md:pr-10">
-            <h1 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent pb-3">
+            <h1 className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text pb-3 text-4xl font-bold text-transparent md:text-5xl">
               One Image, Many Ideas.
             </h1>
-            <p className="text-lg text-gray-600 max-w-xl">
+            <p className="max-w-xl text-lg text-gray-600">
               Turn visuals into keywords, colors, and directions you can
               explore.
             </p>
-            <div className="inline-block px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mt-4">
+            <div className="mt-4 inline-block rounded-full bg-blue-100 px-4 py-2 text-sm font-medium text-blue-700">
               {remaining} images remaining today
             </div>
           </div>
 
           {/* Right Side: Uploader or limit warning; wider */}
           {/* TODO: make the alert on top of the disabled and blurred uploader instead */}
-          <div className="flex items-center h-full">
+          <div className="flex h-full items-center">
             <div className="w-full">
               {isLimitReached ? (
                 //  Rate Limit Warning
-                <div className="w-full max-w-2xl mx-auto p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <div className="mx-auto flex w-full max-w-2xl items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+                  <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
                   <div>
                     <h3 className="font-semibold text-red-900">
                       Daily Limit Reached
                     </h3>
-                    <p className="text-sm text-red-700 mt-1">
+                    <p className="mt-1 text-sm text-red-700">
                       You&apos;ve analyzed 10 images today. Come back tomorrow
                       for more!
                     </p>
@@ -179,7 +182,7 @@ export default function Home() {
                 </div>
               ) : (
                 // Image Uploader
-                <div className="w-full max-w-3xl mx-auto">
+                <div className="mx-auto w-full max-w-3xl">
                   <ImageUploader
                     onImagesAdded={handleImagesAdded}
                     remainingImageCount={remaining}
@@ -195,24 +198,24 @@ export default function Home() {
           <div>
             {/* Layout Switcher is hidden on tablet or smaller */}
             <div
-              className={`flex items-center gap-x-2 justify-end md:justify-between ${!isTabletOrSmaller && layout === 'list' ? 'max-w-7xl mx-auto' : 'max-w-7xl'} mb-4`}
+              className={`flex items-center justify-end gap-x-2 md:justify-between ${!isTabletOrSmaller && layout === 'list' ? 'mx-auto max-w-7xl' : 'max-w-7xl'} mb-4`}
             >
               {!isTabletOrSmaller && (
-                <div className="flex border border-stone-300 rounded-md p-1 bg-white shadow-sm">
+                <div className="flex rounded-md border border-stone-300 bg-white p-1 shadow-sm">
                   <button
                     onClick={() => setLayout('list')}
-                    className={`cursor-pointer p-1 rounded-sm transition-colors flex items-center gap-1 text-sm font-medium ${layout === 'list' ? 'bg-blue-100 text-primary' : 'text-stone-400 hover:bg-stone-50'}`}
+                    className={`flex cursor-pointer items-center gap-1 rounded-sm p-1 text-sm font-medium transition-colors ${layout === 'list' ? 'text-primary bg-blue-100' : 'text-stone-400 hover:bg-stone-50'}`}
                     title="List View (Horizontal Card)"
                   >
-                    <List className="w-4 h-4" />
+                    <List className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => setLayout('stacked')}
-                    className={`cursor-pointer p-1 rounded-sm transition-colors flex items-center gap-1 text-sm font-medium ${layout === 'stacked' ? 'bg-blue-100 text-primary' : 'text-stone-400 hover:bg-stone-50'}`}
+                    className={`flex cursor-pointer items-center gap-1 rounded-sm p-1 text-sm font-medium transition-colors ${layout === 'stacked' ? 'text-primary bg-blue-100' : 'text-stone-400 hover:bg-stone-50'}`}
                     title="Stacked View (Vertical Card / Grid)"
                     disabled={isTabletOrSmaller}
                   >
-                    <LayoutGrid className="w-4 h-4" />
+                    <LayoutGrid className="h-4 w-4" />
                   </button>
                 </div>
               )}
@@ -230,13 +233,11 @@ export default function Home() {
             {(images.length > 0 || showExample) && (
               <div className="space-y-6">
                 <div
-                  className={`
-            ${
-              layout === 'stacked'
-                ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
-                : 'grid grid-cols-1 gap-8 max-w-7xl mx-auto'
-            }
-          `}
+                  className={` ${
+                    layout === 'stacked'
+                      ? 'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'
+                      : 'mx-auto grid max-w-7xl grid-cols-1 gap-8'
+                  } `}
                 >
                   {/* Render actual images (if any) */}
                   {images.map((image) => (
@@ -250,8 +251,8 @@ export default function Home() {
                   {/* Example card if no uploaded images */}
                   {images.length === 0 && showExample && (
                     <div className="relative">
-                      <div className="absolute top-0 left-0 right-0 flex justify-center z-10">
-                        <div className="bg-primary text-white px-3 py-1 rounded-b-lg text-xs font-semibold mb-[-8px] shadow-lg">
+                      <div className="absolute top-0 right-0 left-0 z-10 flex justify-center">
+                        <div className="bg-primary mb-[-8px] rounded-b-lg px-3 py-1 text-xs font-semibold text-white shadow-lg">
                           Example
                         </div>
                       </div>
@@ -270,7 +271,7 @@ export default function Home() {
 
         {/* Empty State */}
         {images.length === 0 && !showExample && remaining > 0 && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="py-12 text-center text-gray-500">
             <p>Upload your image to get started!</p>
           </div>
         )}

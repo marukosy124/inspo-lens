@@ -12,33 +12,33 @@ export default function TermsPage() {
   return (
     <>
       <Header />
-      <main className="container mx-auto px-5 pt-12 max-w-3xl flex flex-col min-h-screen">
+      <main className="container mx-auto flex min-h-screen max-w-3xl flex-col px-5 pt-12">
         <Link href="/" className="mb-6 inline-block">
           <Button
             variant="ghost"
             size="sm"
             className="text-gray-500 hover:bg-blue-50 hover:text-gray-500"
           >
-            <ChevronLeft className="w-4 h-4 mr-2" />
+            <ChevronLeft className="mr-2 h-4 w-4" />
             Back to Home
           </Button>
         </Link>
 
-        <article className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 space-y-8">
+        <article className="space-y-8 rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
           <header>
             <h1 className="text-3xl font-bold text-gray-900">
               Terms of Service
             </h1>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="mt-1 text-sm text-gray-600">
               Last updated: November 30, 2025
             </p>
           </header>
 
-          <section className="space-y-5 text-gray-700 leading-relaxed">
+          <section className="space-y-5 leading-relaxed text-gray-700">
             <p>By using InspoLens, you agree to these simple terms.</p>
 
             <div className="space-y-3">
-              <h2 className="font-semibold text-lg">Permitted Use</h2>
+              <h2 className="text-lg font-semibold">Permitted Use</h2>
               <p className="text-sm">
                 You may use this tool for personal or professional purposes.
                 Upload images, view results, and share them if you wish.
@@ -46,8 +46,8 @@ export default function TermsPage() {
             </div>
 
             <div className="space-y-3">
-              <h2 className="font-semibold text-lg">Prohibited Actions</h2>
-              <ul className="text-sm space-y-1 list-disc list-inside">
+              <h2 className="text-lg font-semibold">Prohibited Actions</h2>
+              <ul className="list-inside list-disc space-y-1 text-sm">
                 <li>
                   Uploading illegal, harmful, or copyrighted content without
                   permission
@@ -64,7 +64,7 @@ export default function TermsPage() {
             </div>
 
             <div className="space-y-3">
-              <h2 className="font-semibold text-lg">No Warranty</h2>
+              <h2 className="text-lg font-semibold">No Warranty</h2>
               <p className="text-sm">
                 This is a free tool provided as-is. I aim to keep it running,
                 but offer no guarantees of uptime or accuracy.
@@ -72,7 +72,7 @@ export default function TermsPage() {
             </div>
 
             <div className="space-y-3">
-              <h2 className="font-semibold text-lg">Changes to Terms</h2>
+              <h2 className="text-lg font-semibold">Changes to Terms</h2>
               <p className="text-sm">
                 These terms may be updated. Continued use means you accept the
                 current version.

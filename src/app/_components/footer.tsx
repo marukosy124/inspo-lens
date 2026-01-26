@@ -2,9 +2,9 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-400 border-t border-gray-800">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+    <footer className="border-t border-gray-800 bg-gray-900 text-gray-400">
+      <div className="container mx-auto max-w-7xl px-4 py-8">
+        <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
           {/* Left: Built by */}
           <p className="text-sm">
             Built by{' '}
@@ -12,7 +12,7 @@ export default function Footer() {
               href="https://www.soniayeung.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white font-semibold"
+              className="font-semibold text-white"
             >
               Sonia Yeung
             </a>
@@ -22,11 +22,11 @@ export default function Footer() {
           <div className="flex gap-6 text-sm">
             <Link
               href="/privacy"
-              className="hover:text-white transition-colors"
+              className="transition-colors hover:text-white"
             >
               Privacy
             </Link>
-            <Link href="/terms" className="hover:text-white transition-colors">
+            <Link href="/terms" className="transition-colors hover:text-white">
               Terms
             </Link>
           </div>

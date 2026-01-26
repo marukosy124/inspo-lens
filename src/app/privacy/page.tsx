@@ -12,21 +12,21 @@ export default function PrivacyPage() {
   return (
     <>
       <Header />
-      <main className="container mx-auto px-5 pt-12 max-w-3xl flex flex-col min-h-screen">
+      <main className="container mx-auto flex min-h-screen max-w-3xl flex-col px-5 pt-12">
         <Link href="/" className="mb-6 inline-block">
           <Button
             variant="ghost"
             size="sm"
             className="text-gray-500 hover:bg-blue-50 hover:text-gray-500"
           >
-            <ChevronLeft className="w-4 h-4 mr-2" />
+            <ChevronLeft className="mr-2 h-4 w-4" />
             Back to Home
           </Button>
         </Link>
 
-        <article className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 space-y-6">
+        <article className="space-y-6 rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            <h1 className="mb-2 text-4xl font-bold text-gray-900">
               Privacy Policy
             </h1>
             <p className="text-gray-600">Last updated: December 1, 2025</p>
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
             <h2 className="text-2xl font-semibold text-gray-900">
               What This Tool Does
             </h2>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="leading-relaxed text-gray-700">
               InspoLens is a simple tool that helps you find visual inspiration.
               You upload an image, and it extracts visual elements (colors,
               keywords, descriptions) to help you discover inspirations more
@@ -79,7 +79,7 @@ export default function PrivacyPage() {
             <h2 className="text-2xl font-semibold text-gray-900">
               Third-Party Services
             </h2>
-            <ul className="list-disc list-inside space-y-2 text-gray-700">
+            <ul className="list-inside list-disc space-y-2 text-gray-700">
               <li>
                 <strong>OpenAI:</strong> For image analysis (
                 <a
@@ -111,7 +111,7 @@ export default function PrivacyPage() {
             <h2 className="text-2xl font-semibold text-gray-900">
               That&apos;s It
             </h2>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="leading-relaxed text-gray-700">
               No accounts, no tracking, no complicated data practices.
             </p>
           </section>

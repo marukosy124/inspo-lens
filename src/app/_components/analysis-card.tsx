@@ -29,13 +29,13 @@ const CopyAllButton = ({
     <CustomTooltip label={label}>
       <button
         onClick={onCopy}
-        className="text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+        className="cursor-pointer text-stone-400 transition-colors hover:text-stone-600"
         title={label}
       >
         {buttonKey === copiedKey ? (
-          <Check className="w-4 h-4 text-green-500" />
+          <Check className="h-4 w-4 text-green-500" />
         ) : (
-          <Copy className="w-4 h-4" />
+          <Copy className="h-4 w-4" />
         )}
       </button>
     </CustomTooltip>
@@ -55,7 +55,7 @@ const ColorPalette = ({ colors, copied, onCopy }: ColorExtractorProps) => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
+      <div className="mb-2 flex items-center justify-between">
         <div className="text-xs font-bold text-stone-400">Colors</div>
         {colors.length > 0 && (
           <CopyAllButton
@@ -66,25 +66,25 @@ const ColorPalette = ({ colors, copied, onCopy }: ColorExtractorProps) => {
           />
         )}
       </div>
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex flex-wrap gap-3">
         {colors.map((color, idx) => {
           const colorLabel = `${color.hex} ${color.name}`;
           return (
-            <div key={idx} className="relative group/color">
+            <div key={idx} className="group/color relative">
               <button
                 onClick={() => onCopy(`color-${color.hex}`, colorLabel)}
-                className="w-10 h-10 rounded-full shadow-sm ring-1 ring-black/5 hover:scale-110 transition-transform block cursor-pointer"
+                className="block h-10 w-10 cursor-pointer rounded-full shadow-sm ring-1 ring-black/5 transition-transform hover:scale-110"
                 style={{ backgroundColor: color.hex }}
                 title={`Click to copy ${colorLabel}`}
               />
-              <span className="absolute -top-2 -right-2 p-1 bg-white rounded-full border border-stone-200 text-stone-400 opacity-0 group-hover/color:opacity-100 transition-opacity shadow-sm">
+              <span className="absolute -top-2 -right-2 rounded-full border border-stone-200 bg-white p-1 text-stone-400 opacity-0 shadow-sm transition-opacity group-hover/color:opacity-100">
                 {copied === `color-${color.hex}` ? (
-                  <Check className="w-3 h-3 text-green-500" />
+                  <Check className="h-3 w-3 text-green-500" />
                 ) : (
-                  <Copy className="w-3 h-3" />
+                  <Copy className="h-3 w-3" />
                 )}
               </span>
-              <span className="text-center absolute -bottom-8 left-1/2 -translate-x-1/2 bg-stone-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/color:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
+              <span className="pointer-events-none absolute -bottom-8 left-1/2 z-20 -translate-x-1/2 rounded bg-stone-800 px-2 py-1 text-center text-[10px] whitespace-nowrap text-white opacity-0 transition-opacity group-hover/color:opacity-100">
                 {color.hex}
                 <br />
                 {color.name}
@@ -140,20 +140,20 @@ const AnalysisCard = ({
   // -- Missing image fallback --
   if (!imageUrl) {
     return (
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm flex flex-col justify-center items-center aspect-square p-6">
+      <div className="flex aspect-square flex-col items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col items-center gap-2">
-          <span className="text-red-500 font-semibold text-lg">
+          <span className="text-lg font-semibold text-red-500">
             Image Not Available
           </span>
-          <span className="text-gray-500 text-sm">
+          <span className="text-sm text-gray-500">
             Something went wrong. The image could not be loaded.
           </span>
         </div>
         <button
           onClick={onRemove}
-          className="mt-6 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center border border-gray-200 hover:bg-red-500 hover:text-white transition"
+          className="mt-6 flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white/90 backdrop-blur-sm transition hover:bg-red-500 hover:text-white"
         >
-          <X className="w-4 h-4" />
+          <X className="h-4 w-4" />
         </button>
       </div>
     );
@@ -172,11 +172,11 @@ const AnalysisCard = ({
   // We'll use fill and set sizes to 100% so it matches the responsive container.
   return (
     <div
-      className={`bg-white rounded-3xl shadow-sm border border-stone-200 overflow-hidden ${containerClasses} group hover:shadow-md transition-all duration-300 flex flex-col`}
+      className={`overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm ${containerClasses} group flex flex-col transition-all duration-300 hover:shadow-md`}
     >
       {/* Image Container */}
       <div
-        className={`${imageContainerClasses} bg-stone-100 overflow-hidden shrink-0 relative cursor-pointer`}
+        className={`${imageContainerClasses} relative shrink-0 cursor-pointer overflow-hidden bg-stone-100`}
         onClick={handleImageContainerClick}
         tabIndex={0}
         role="button"
@@ -188,7 +188,7 @@ const AnalysisCard = ({
           alt={analysis?.searchTerm ? analysis.searchTerm : 'Analyzed'}
           fill
           sizes="100vw"
-          className={`w-full h-full object-cover transition-opacity duration-700 ${isAnalyzing ? 'opacity-50 blur-sm' : 'opacity-100'}`}
+          className={`h-full w-full object-cover transition-opacity duration-700 ${isAnalyzing ? 'opacity-50 blur-sm' : 'opacity-100'}`}
           style={{ pointerEvents: 'none' }}
           // fallback width/height for image loader, can be overridden by fill
           priority
@@ -198,18 +198,18 @@ const AnalysisCard = ({
           <Button
             size="icon-sm"
             onClick={onRemove}
-            className="absolute top-3 left-3 p-2 bg-stone-100 hover:bg-stone-100 text-stone-400 hover:text-stone-600 rounded-full transition-colors z-20 cursor-pointer"
+            className="absolute top-3 left-3 z-20 cursor-pointer rounded-full bg-stone-100 p-2 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
             aria-label="Remove image"
             tabIndex={0}
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </Button>
         )}
 
         {isAnalyzing && (
-          <div className="absolute inset-0 flex items-center justify-center flex-col gap-3 z-10">
-            <div className="bg-white/90 backdrop-blur px-4 py-2 rounded-full flex items-center gap-2 shadow-sm">
-              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3">
+            <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 shadow-sm backdrop-blur">
+              <Loader2 className="text-primary h-4 w-4 animate-spin" />
               <span className="text-xs font-medium text-stone-600">
                 Analyzing image...
               </span>
@@ -220,23 +220,23 @@ const AnalysisCard = ({
 
       {/* Content - Now scrollable */}
       <div
-        className={`${contentPadding} flex-1 flex flex-col justify-between gap-6 relative overflow-y-auto overflow-x-hidden`}
+        className={`${contentPadding} relative flex flex-1 flex-col justify-between gap-6 overflow-x-hidden overflow-y-auto`}
       >
         {error ? (
-          <div className="text-red-500 text-sm text-center py-4">{error}</div>
+          <div className="py-4 text-center text-sm text-red-500">{error}</div>
         ) : isAnalyzing ? (
-          <div className="space-y-4 animate-pulse w-full">
-            <div className="h-3 bg-stone-100 rounded w-2/3 mb-3"></div>
-            <div className="h-3 bg-stone-100 rounded w-1/3"></div>
-            <div className="flex gap-2 mt-6">
+          <div className="w-full animate-pulse space-y-4">
+            <div className="mb-3 h-3 w-2/3 rounded bg-stone-100"></div>
+            <div className="h-3 w-1/3 rounded bg-stone-100"></div>
+            <div className="mt-6 flex gap-2">
               {[1, 2, 3, 4, 5].map((i) => (
                 <div
                   key={i}
-                  className="w-10 h-10 rounded-full bg-stone-100"
+                  className="h-10 w-10 rounded-full bg-stone-100"
                 ></div>
               ))}
             </div>
-            <div className="h-3 bg-stone-100 rounded w-1/2 mt-3"></div>
+            <div className="mt-3 h-3 w-1/2 rounded bg-stone-100"></div>
           </div>
         ) : (
           <>
@@ -244,7 +244,7 @@ const AnalysisCard = ({
               {/* 1. Search Term as Title */}
               {analysis?.searchTerm && (
                 <div className="flex items-baseline gap-2">
-                  <p className="text-lg md:text-xl text-stone-900 font-bold flex-1 wrap-break-word text-left transition-colors">
+                  <p className="flex-1 text-left text-lg font-bold wrap-break-word text-stone-900 transition-colors md:text-xl">
                     {analysis.searchTerm}
                   </p>
                   <CopyAllButton
@@ -268,7 +268,7 @@ const AnalysisCard = ({
               {/* 3. Keywords */}
               {analysis?.keywords && (
                 <div>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="mb-2 flex items-center justify-between">
                     <div className="text-xs font-bold text-stone-400">
                       Keywords
                     </div>
@@ -283,18 +283,18 @@ const AnalysisCard = ({
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {analysis.keywords.map((keyword, idx) => (
-                      <div key={idx} className="relative group/keyword">
+                      <div key={idx} className="group/keyword relative">
                         <button
                           onClick={() => handleCopy(`keyword-${idx}`, keyword)}
-                          className="px-3 py-1.5 bg-stone-50 hover:bg-stone-100 border border-stone-100 text-stone-600 text-sm rounded-lg transition-colors wrap-break-word max-w-full cursor-pointer"
+                          className="max-w-full cursor-pointer rounded-lg border border-stone-100 bg-stone-50 px-3 py-1.5 text-sm wrap-break-word text-stone-600 transition-colors hover:bg-stone-100"
                         >
                           {keyword}
                         </button>
-                        <span className="absolute -top-2 -right-2 p-1 bg-white rounded-full border border-stone-200 text-stone-400  opacity-0 group-hover/keyword:opacity-100 transition-opacity shadow-sm cursor-pointer">
+                        <span className="absolute -top-2 -right-2 cursor-pointer rounded-full border border-stone-200 bg-white p-1 text-stone-400 opacity-0 shadow-sm transition-opacity group-hover/keyword:opacity-100">
                           {copied === `keyword-${idx}` ? (
-                            <Check className="w-3 h-3 text-green-500" />
+                            <Check className="h-3 w-3 text-green-500" />
                           ) : (
-                            <Copy className="w-3 h-3" />
+                            <Copy className="h-3 w-3" />
                           )}
                         </span>
                       </div>
@@ -306,7 +306,7 @@ const AnalysisCard = ({
               {/* 4. Description */}
               {analysis?.description && (
                 <div>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="mb-2 flex items-center justify-between">
                     <div className="text-xs font-bold text-stone-400">
                       Description
                     </div>
@@ -319,7 +319,7 @@ const AnalysisCard = ({
                       }
                     />
                   </div>
-                  <p className="leading-snug text-stone-700 wrap-break-word text-sm italic">
+                  <p className="text-sm leading-snug wrap-break-word text-stone-700 italic">
                     {analysis.description}
                   </p>
                 </div>

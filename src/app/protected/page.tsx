@@ -1,0 +1,20 @@
+import { redirect } from 'next/navigation';
+
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+
+export default async function ProtectedPage() {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase.auth.getClaims();
+  if (error || !data?.claims) {
+    redirect('/');
+  }
+
+  return (
+    <div className="flex h-svh w-full items-center justify-center gap-2">
+      <p>
+        Hello <span>{data.claims.email}</span>
+      </p>
+    </div>
+  );
+}

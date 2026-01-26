@@ -216,7 +216,7 @@ const ImageUploader = ({
         }}
         onDragLeave={() => setIsDragging(false)}
         className={cn(
-          'relative border-2 border-dashed rounded-xl p-12 transition-all duration-300',
+          'relative rounded-xl border-2 border-dashed p-12 transition-all duration-300',
           isDragging
             ? 'border-blue-500 bg-blue-50'
             : 'border-gray-300 bg-white hover:border-blue-400'
@@ -227,20 +227,20 @@ const ImageUploader = ({
           multiple
           accept="image/*"
           onChange={handleFileInput}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           disabled={remainingImageCount === 0}
         />
 
-        <div className="flex flex-col items-center justify-center text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
+        <div className="flex flex-col items-center justify-center space-y-4 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-purple-500 shadow-lg">
             {isUploading ? (
-              <Loader2 className="w-8 h-8 animate-spin text-white mx-auto" />
+              <Loader2 className="mx-auto h-8 w-8 animate-spin text-white" />
             ) : (
-              <Upload className="w-8 h-8 text-white" />
+              <Upload className="h-8 w-8 text-white" />
             )}
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-1">
+            <h3 className="mb-1 text-lg font-semibold">
               {isUploading ? 'Uploading...' : 'Drop images here'}
             </h3>
             {!isUploading && (
@@ -263,13 +263,13 @@ const ImageUploader = ({
 
       <div className="space-y-3">
         <div className="flex gap-2">
-          <div className="flex-1 relative">
-            <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <div className="relative flex-1">
+            <LinkIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
               placeholder="Paste image URL"
               value={urlInput}
               onChange={onInputChange}
-              className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`w-full rounded-lg border py-2 pr-3 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none ${
                 inputError
                   ? 'border-red-400 focus:ring-red-400'
                   : 'border-gray-300'
@@ -278,7 +278,7 @@ const ImageUploader = ({
               disabled={remainingImageCount === 0}
             />
             {inputError && (
-              <div className="absolute left-0 right-0 mt-1 text-xs text-red-500">
+              <div className="absolute right-0 left-0 mt-1 text-xs text-red-500">
                 {inputError}
               </div>
             )}
