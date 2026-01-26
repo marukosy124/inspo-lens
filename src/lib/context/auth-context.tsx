@@ -7,7 +7,6 @@ import {
   useState,
   ReactNode,
 } from 'react';
-import { User } from '@supabase/supabase-js';
 import { supabaseClient } from '@/lib/supabase/client';
 import { CompleteUser, UserProfile } from '@/lib/types';
 
@@ -34,7 +33,7 @@ export function AuthProvider({
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    } = supabaseClient.auth.onAuthStateChange(async (_, session) => {
       let user = session?.user ?? null;
       if (user) {
         // Get the profile (single row)

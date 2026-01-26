@@ -5,10 +5,9 @@ import SignInButton from '@/components/auth/sign-in-button';
 import SignUpButton from '@/components/auth/sign-up-button';
 import { CurrentUserAvatar } from '@/components/current-user-avatar';
 import { useAuth } from '@/lib/context/auth-context';
-import { supabaseClient } from '@/lib/supabase/client';
 import { Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export default function Header() {
   const { user } = useAuth();

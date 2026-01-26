@@ -5,8 +5,6 @@ import Footer from '@/app/_components/footer';
 import { Toaster } from '@/components/ui/sonner';
 import Header from '@/components/header';
 import { AuthProvider } from '@/lib/context/auth-context';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 const geistSans = Geist({

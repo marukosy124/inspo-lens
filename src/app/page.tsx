@@ -8,12 +8,10 @@ import { AlertCircle, LayoutGrid, List } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import useIsTabletOrSmaller from '@/hooks/use-is-tablet-or-smaller';
-import Header from '@/components/header';
 import { exampleImage } from '@/lib/constants';
 import { extractColors } from '@/lib/color-extractor';
 
 //  TODO: ADD SAVE BTN
-// TODO: USE SUPBASE AUTH INSYTEAD
 
 export default function Home() {
   const { remaining, isLimitReached, incrementUsage } = useUsageLimit();
@@ -69,7 +67,7 @@ export default function Home() {
       }
 
       const result: ImageAnalysis = await res.json();
-      // TODO: SAVE RESULT TO DB
+      // TODO: SAVE RESULT TO DB (anonymous -> official; signed in -> real user)
 
       setImages((prev) =>
         prev.map((img) =>
