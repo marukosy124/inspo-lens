@@ -1,11 +1,12 @@
+import { env } from '@/lib/env';
 import { ImageInfo } from '@/lib/types';
+
+const EXAMPLE_IMAGE_URL = `${env.SUPABASE_URL}/storage/v1/object/public/public-assets/users/bc3c335f-69a5-426e-b90c-e11ae0ad75d3/example.png`;
 
 export const exampleImage: ImageInfo = {
   id: 'cmqlgj',
-  imageUrl:
-    'https://o7f2rjllxxdvs2xh.public.blob.vercel-storage.com/example.png',
-  proxyUrl:
-    '/api/image-proxy?url=https%3A%2F%2Fo7f2rjllxxdvs2xh.public.blob.vercel-storage.com%2Fexample.png',
+  imageUrl: EXAMPLE_IMAGE_URL,
+  proxyUrl: `/api/image-proxy?url=${encodeURIComponent(EXAMPLE_IMAGE_URL)}`,
   isAnalyzing: false,
   analysis: {
     description:

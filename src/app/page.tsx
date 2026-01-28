@@ -38,7 +38,8 @@ export default function Home() {
     imageUrl: string,
     proxyUrl: string
   ) => {
-    const colors = (await extractColors(proxyUrl, 8)).slice(0, 5); // only get the top 5 colors
+    // TO-TEST: REMOVE PROXYURL ON PROD
+    const colors = (await extractColors(imageUrl, 8)).slice(0, 5); // only get the top 5 colors
 
     try {
       setImages((prev) =>

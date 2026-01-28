@@ -184,8 +184,8 @@ const AnalysisCard = ({
         style={{ minHeight: '8rem' }} // for fill layout fallback (optional, keeps box filled)
       >
         <Image
-          src={proxyUrl ?? imageUrl}
-          alt={analysis?.searchTerm ? analysis.searchTerm : 'Analyzed'}
+          src={imageUrl}
+          alt={analysis?.searchTerm ?? 'Analyzed'}
           fill
           sizes="100vw"
           className={`h-full w-full object-cover transition-opacity duration-700 ${isAnalyzing ? 'opacity-50 blur-sm' : 'opacity-100'}`}

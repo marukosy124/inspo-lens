@@ -24,3 +24,27 @@ export function capitalize(str: string) {
     })
     .join(' ');
 }
+
+export function getImageExtensionFromMime(mime: string): string {
+  const map: Record<string, string> = {
+    'image/png': 'png',
+    'image/jpeg': 'jpg',
+    'image/webp': 'webp',
+    'image/gif': 'gif',
+    'image/svg+xml': 'svg',
+  };
+  return map[mime] || 'jpg';
+}
+
+export function isValidUrl(url: string): boolean {
+  try {
+    const trimmed = url.trim();
+    const parsed = new URL(trimmed);
+    return (
+      (parsed.protocol === 'http:' || parsed.protocol === 'https:') &&
+      !!parsed.hostname
+    );
+  } catch {
+    return false;
+  }
+}

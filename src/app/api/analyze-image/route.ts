@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { zodTextFormat } from 'openai/helpers/zod';
 import { capitalize } from '@/lib/utils';
 import { ExtractedColor } from '@/lib/color-extractor';
+import { env } from '@/lib/env';
 
 const prompt = `
 Given an image and its colors, analyze its visual content and return the following:
@@ -63,22 +64,30 @@ function mergeColorsWithNames(
 export async function POST(request: Request) {
   const { imageUrl, colors } = await request.json();
 
-  if (!imageUrl || !imageUrl.startsWith('https://')) {
+  if (
+    (!imageUrl || !imageUrl.startsWith('https://')) &&
+    env.APP_ENV !== 'dev'
+  ) {
     return NextResponse.json(
-      { error: 'Invalid or non-HTTPS URL' },
+      { error: 'Failed to analyze: Invalid or non-HTTPS URL' },
       { status: 400 }
     );
   }
 
   try {
-    const imageResponse = await fetch(imageUrl);
-    if (!imageResponse.ok) throw new Error('Failed to fetch image');
+    let inputImageUrl = imageUrl;
 
-    const buffer = await imageResponse.arrayBuffer();
-    const contentType =
-      imageResponse.headers.get('content-type') || 'image/jpeg';
-    const base64Image = Buffer.from(buffer).toString('base64');
-    const imageDataUrl = `data:${contentType};base64,${base64Image}`;
+    // for local, convert to base64 for testing
+    if (imageUrl.startsWith('http://')) {
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) throw new Error('Failed to fetch image');
+
+      const buffer = await imageResponse.arrayBuffer();
+      const contentType =
+        imageResponse.headers.get('content-type') || 'image/jpeg';
+      const base64Image = Buffer.from(buffer).toString('base64');
+      inputImageUrl = `data:${contentType};base64,${base64Image}`;
+    }
 
     const response = await openai.responses.parse({
       model: 'gpt-4.1-mini',
@@ -93,7 +102,7 @@ export async function POST(request: Request) {
             },
             {
               type: 'input_image',
-              image_url: imageDataUrl,
+              image_url: inputImageUrl,
               detail: 'auto',
             },
           ],

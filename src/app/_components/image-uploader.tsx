@@ -2,8 +2,12 @@
 
 import { useCallback, useState } from 'react';
 import { Upload, LinkIcon, Loader2 } from 'lucide-react';
-import { PutBlobResult } from '@vercel/blob';
-import { cn, generateId } from '@/lib/utils';
+import {
+  cn,
+  generateId,
+  getImageExtensionFromMime,
+  isValidUrl,
+} from '@/lib/utils';
 import { ImageInfo } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,19 +15,6 @@ import { Input } from '@/components/ui/input';
 interface ImageUploaderProps {
   remainingImageCount: number;
   onImagesAdded: (newImages: ImageInfo[]) => void;
-}
-
-function isValidUrl(url: string): boolean {
-  try {
-    const trimmed = url.trim();
-    const parsed = new URL(trimmed);
-    return (
-      (parsed.protocol === 'http:' || parsed.protocol === 'https:') &&
-      !!parsed.hostname
-    );
-  } catch {
-    return false;
-  }
 }
 
 const ImageUploader = ({
@@ -48,13 +39,32 @@ const ImageUploader = ({
       });
 
       if (!response.ok) throw new Error('Failed to upload image');
-      const newBlob = (await response.json()) as PutBlobResult;
-
+      const newBlob = await response.json();
       return newBlob.url;
     } catch (error) {
       console.error('Upload error:', error);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const downloadAndUploadRemoteImage = async (
+    url: string
+  ): Promise<string | undefined> => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch remote image');
+      const blob = await res.blob();
+      const contentType = res.headers.get('content-type') || blob.type;
+      const ext = getImageExtensionFromMime(contentType);
+      const fileName = `remote-${generateId()}.${ext}`;
+      const file = new File([blob], fileName, { type: blob.type });
+
+      const uploadedUrl = await uploadImage(file);
+      return uploadedUrl;
+    } catch (err) {
+      console.error('Remote image error:', err);
+      return undefined;
     }
   };
 
@@ -94,30 +104,35 @@ const ImageUploader = ({
     return { valid: true, url: val, error: null };
   };
 
-  const handleUrlSubmit = useCallback(() => {
+  const handleUrlSubmit = useCallback(async () => {
     const { valid, url, error } = validateUrl(urlInput);
-    if (!urlInput.trim()) {
-      setInputError(null);
-      return;
-    }
     if (!valid) {
       setInputError(error || 'Invalid URL');
       return;
     }
 
     setInputError(null);
+    setIsUploading(true);
 
-    const trimmedUrl = url.trim();
-    const images = [
-      {
-        id: generateId(),
-        imageUrl: trimmedUrl,
-        proxyUrl: getProxyUrl(trimmedUrl),
-      },
-    ];
+    try {
+      const uploadedUrl = await downloadAndUploadRemoteImage(url);
+      if (!uploadedUrl) throw new Error('Failed to process URL image');
 
-    onImagesAdded(images);
-    setUrlInput('');
+      const images = [
+        {
+          id: generateId(),
+          imageUrl: uploadedUrl,
+          proxyUrl: getProxyUrl(uploadedUrl),
+        },
+      ];
+
+      onImagesAdded(images);
+      setUrlInput('');
+    } catch (err) {
+      setInputError('Failed to process URL image');
+    } finally {
+      setIsUploading(false);
+    }
   }, [urlInput, onImagesAdded]);
 
   const handleDrop = useCallback(
