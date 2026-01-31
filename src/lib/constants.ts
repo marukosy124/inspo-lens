@@ -1,7 +1,7 @@
 import { env } from '@/lib/env';
 import { ImageInfo } from '@/lib/types';
 
-const EXAMPLE_IMAGE_URL = `${env.SUPABASE_URL}/storage/v1/object/public/public-assets/users/bc3c335f-69a5-426e-b90c-e11ae0ad75d3/example.png`;
+const EXAMPLE_IMAGE_URL = `${env.SUPABASE_URL}/storage/v1/object/public/public-assets/static/example.png`;
 
 export const exampleImage: ImageInfo = {
   id: 'cmqlgj',

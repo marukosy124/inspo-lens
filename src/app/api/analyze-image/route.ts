@@ -33,7 +33,7 @@ Given an image and its colors, analyze its visual content and return the followi
 { description: string, keywords: string[], searchTerm: string, colors: [{ hex: string, name: string }] }
 `;
 
-const AnalysisResponse = z.object({
+const analysisResponseSchema = z.object({
   description: z.string(),
   keywords: z.array(z.string()),
   searchTerm: z.string(),
@@ -109,7 +109,7 @@ export async function POST(request: Request) {
         },
       ],
       text: {
-        format: zodTextFormat(AnalysisResponse, 'analysis_response'),
+        format: zodTextFormat(analysisResponseSchema, 'analysis_response'),
       },
     });
 

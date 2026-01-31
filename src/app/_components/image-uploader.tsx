@@ -33,14 +33,53 @@ const ImageUploader = ({
   const uploadImage = async (file: File) => {
     try {
       setIsUploading(true);
-      const response = await fetch(`/api/upload-image?filename=${file.name}`, {
-        method: 'POST',
-        body: file,
-      });
 
-      if (!response.ok) throw new Error('Failed to upload image');
-      const newBlob = await response.json();
-      return newBlob.url;
+      // Get signed upload URL
+      let params = new URLSearchParams({
+        filename: file.name,
+        public: 'true', // TODO: SUPPORT PRIVATE FOR AUTHENTICATED USERS
+      });
+      const signedRes = await fetch(
+        `/api/storage/signed-upload-url?${params.toString()}`,
+        {
+          method: 'GET',
+        }
+      );
+      if (!signedRes.ok) {
+        const error = await signedRes.text();
+        throw new Error(`Failed to get signed URL: ${error}`);
+      }
+      const { signedUrl, path, bucket } = await signedRes.json();
+
+      // upload to Supabase Storage
+      const uploadRes = await fetch(signedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type },
+      });
+      if (!uploadRes.ok) {
+        const error = await uploadRes.text();
+        throw new Error(`Failed to upload: ${error}`);
+      }
+
+      // Get public / signed URL
+      params = new URLSearchParams({
+        bucket,
+        path,
+        public: 'true', // TODO: SUPPORT PRIVATE FOR AUTHENTICATED USERS
+      });
+      const uploadedRes = await fetch(
+        `/api/storage/uploaded-url?${params.toString()}`,
+        {
+          method: 'GET',
+        }
+      );
+      if (!uploadedRes.ok) {
+        const error = await uploadedRes.text();
+        throw new Error(`Failed to get uploaded URL: ${error}`);
+      }
+      const { url } = await uploadedRes.json();
+      return url;
     } catch (error) {
       console.error('Upload error:', error);
     } finally {
