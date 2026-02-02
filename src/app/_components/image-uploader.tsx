@@ -11,6 +11,9 @@ import {
 import { ImageInfo } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { GetSignedUploadUrlResponse } from '@/app/api/storage/signed-upload-url/route';
+import { GetUploadedUrlResponse } from '@/app/api/storage/uploaded-url/route';
+import { toast } from 'sonner';
 
 interface ImageUploaderProps {
   remainingImageCount: number;
@@ -21,125 +24,98 @@ const ImageUploader = ({
   onImagesAdded,
   remainingImageCount,
 }: ImageUploaderProps) => {
-  const [urlInput, setUrlInput] = useState<string>('');
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [urlInput, setUrlInput] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
 
-  const getProxyUrl = (imageUrl: string) => {
-    return `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`;
+  const getProxyUrl = (imageUrl: string) =>
+    `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`;
+
+  const getSignedUploadUrl = async (fileName: string) => {
+    const params = new URLSearchParams({ filename: fileName, public: 'true' });
+    const res = await fetch(`/api/storage/signed-upload-url?${params}`);
+    if (!res.ok) {
+      const errorText = await res.text();
+      toast.error(`Failed to get upload URL: ${errorText}`);
+      throw new Error(errorText);
+    }
+    return res.json() as Promise<GetSignedUploadUrlResponse>;
   };
 
-  const uploadImage = async (file: File) => {
+  const getUploadedUrl = async (bucket: string, path: string) => {
+    const params = new URLSearchParams({ bucket, path, public: 'true' });
+    const res = await fetch(`/api/storage/uploaded-url?${params}`);
+    if (!res.ok) {
+      const errorText = await res.text();
+      toast.error(`Failed to get final URL: ${errorText}`);
+      throw new Error(errorText);
+    }
+    const data = await res.json();
+    if (data.error) {
+      toast.error(data.error);
+      throw new Error(data.error);
+    }
+    return data as GetUploadedUrlResponse;
+  };
+
+  const uploadFile = async (file: File) => {
     try {
       setIsUploading(true);
 
-      // Get signed upload URL
-      let params = new URLSearchParams({
-        filename: file.name,
-        public: 'true', // TODO: SUPPORT PRIVATE FOR AUTHENTICATED USERS
-      });
-      const signedRes = await fetch(
-        `/api/storage/signed-upload-url?${params.toString()}`,
-        {
-          method: 'GET',
-        }
-      );
-      if (!signedRes.ok) {
-        const error = await signedRes.text();
-        throw new Error(`Failed to get signed URL: ${error}`);
-      }
-      const { signedUrl, path, bucket } = await signedRes.json();
+      const { signedUrl, path, bucket } = await getSignedUploadUrl(file.name);
 
-      // upload to Supabase Storage
       const uploadRes = await fetch(signedUrl, {
         method: 'PUT',
         body: file,
         headers: { 'Content-Type': file.type },
       });
       if (!uploadRes.ok) {
-        const error = await uploadRes.text();
-        throw new Error(`Failed to upload: ${error}`);
+        const errorText = await uploadRes.text();
+        toast.error(`Upload failed: ${errorText}`);
+        throw new Error(errorText);
       }
 
-      // Get public / signed URL
-      params = new URLSearchParams({
-        bucket,
-        path,
-        public: 'true', // TODO: SUPPORT PRIVATE FOR AUTHENTICATED USERS
-      });
-      const uploadedRes = await fetch(
-        `/api/storage/uploaded-url?${params.toString()}`,
-        {
-          method: 'GET',
-        }
-      );
-      if (!uploadedRes.ok) {
-        const error = await uploadedRes.text();
-        throw new Error(`Failed to get uploaded URL: ${error}`);
-      }
-      const { url } = await uploadedRes.json();
-      return url;
-    } catch (error) {
-      console.error('Upload error:', error);
+      return await getUploadedUrl(bucket, path);
+    } catch (err) {
+      console.error('Upload error:', err);
+      return undefined;
     } finally {
       setIsUploading(false);
     }
   };
 
-  const downloadAndUploadRemoteImage = async (
-    url: string
-  ): Promise<string | undefined> => {
+  const downloadAndUploadRemoteImage = async (url: string) => {
     try {
       const res = await fetch(url);
-      if (!res.ok) throw new Error('Failed to fetch remote image');
-      const blob = await res.blob();
-      const contentType = res.headers.get('content-type') || blob.type;
-      const ext = getImageExtensionFromMime(contentType);
-      const fileName = `remote-${generateId()}.${ext}`;
-      const file = new File([blob], fileName, { type: blob.type });
+      if (!res.ok) {
+        const errorText = await res.text();
+        toast.error(`Failed to fetch image: ${errorText}`);
+        throw new Error(errorText);
+      }
 
-      const uploadedUrl = await uploadImage(file);
-      return uploadedUrl;
+      const blob = await res.blob();
+      const type = res.headers.get('content-type') || blob.type;
+      const ext = getImageExtensionFromMime(type);
+      const fileName = `remote-${generateId()}.${ext}`;
+      const file = new File([blob], fileName, { type });
+
+      return await uploadFile(file);
     } catch (err) {
-      console.error('Remote image error:', err);
+      console.error('Remote upload error:', err);
       return undefined;
     }
   };
 
-  // Validate only accepts one url, must start with http/https
   const validateUrl = (raw: string) => {
     const val = raw.trim();
-    if (!val) {
-      return { valid: false, url: '', error: null };
-    }
-
-    // Allow only a single URL (no line breaks)
-    if (val.includes('\n')) {
-      return {
-        valid: false,
-        url: val,
-        error: 'Please enter only one URL at a time.',
-      };
-    }
-
-    // Only valid if starts with http or https and has a valid format
-    if (!/^https?:\/\//i.test(val)) {
-      return {
-        valid: false,
-        url: val,
-        error: 'Only http:// or https:// image URLs are supported.',
-      };
-    }
-
-    if (!isValidUrl(val)) {
-      return {
-        valid: false,
-        url: val,
-        error: 'Invalid URL provided.',
-      };
-    }
-
+    if (!val) return { valid: false, url: '', error: null };
+    if (val.includes('\n'))
+      return { valid: false, url: val, error: 'One URL only' };
+    if (!/^https?:\/\//i.test(val))
+      return { valid: false, url: val, error: 'Must start with http/https' };
+    if (!isValidUrl(val))
+      return { valid: false, url: val, error: 'Invalid URL' };
     return { valid: true, url: val, error: null };
   };
 
@@ -154,49 +130,58 @@ const ImageUploader = ({
     setIsUploading(true);
 
     try {
-      const uploadedUrl = await downloadAndUploadRemoteImage(url);
-      if (!uploadedUrl) throw new Error('Failed to process URL image');
+      const data = await downloadAndUploadRemoteImage(url);
+      if (!data?.url) {
+        toast.error('No URL returned from upload');
+        throw new Error('No URL returned');
+      }
 
-      const images = [
+      onImagesAdded([
         {
           id: generateId(),
-          imageUrl: uploadedUrl,
-          proxyUrl: getProxyUrl(uploadedUrl),
+          imageUrl: data.url,
+          proxyUrl: getProxyUrl(data.url),
+          bucket: data.bucket,
+          path: data.path,
         },
-      ];
+      ]);
 
-      onImagesAdded(images);
       setUrlInput('');
-    } catch (err) {
-      setInputError('Failed to process URL image');
+    } catch {
+      setInputError('Failed to process URL');
     } finally {
       setIsUploading(false);
     }
-  }, [urlInput, onImagesAdded]);
+  }, [urlInput, onImagesAdded, downloadAndUploadRemoteImage]);
 
   const handleDrop = useCallback(
     async (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragging(false);
 
-      const files = Array.from(e.dataTransfer.files).filter((file) =>
-        file.type.startsWith('image/')
+      const files = Array.from(e.dataTransfer.files).filter((f) =>
+        f.type.startsWith('image/')
       );
-
       const newImages = await Promise.all(
         files.map(async (file) => {
-          const uploadedUrl = await uploadImage(file);
+          const data = await uploadFile(file);
+          if (!data?.url) {
+            toast.error('Upload failed for dropped file');
+            throw new Error('Upload failed');
+          }
           return {
             id: generateId(),
-            imageUrl: uploadedUrl ?? null,
-            proxyUrl: uploadedUrl ? getProxyUrl(uploadedUrl) : null,
+            imageUrl: data.url,
+            proxyUrl: getProxyUrl(data.url),
+            bucket: data.bucket,
+            path: data.path,
           };
         })
       );
 
       onImagesAdded(newImages);
     },
-    [onImagesAdded]
+    [onImagesAdded, uploadFile]
   );
 
   const handleFileInput = useCallback(
@@ -204,64 +189,46 @@ const ImageUploader = ({
       const files = Array.from(e.target.files || []);
       const newImages = await Promise.all(
         files.map(async (file) => {
-          const uploadedUrl = await uploadImage(file);
+          const data = await uploadFile(file);
+          if (!data?.url) {
+            toast.error('Upload failed for selected file');
+            throw new Error('Upload failed');
+          }
           return {
             id: generateId(),
-            imageUrl: uploadedUrl ?? null,
-            proxyUrl: uploadedUrl ? getProxyUrl(uploadedUrl) : null,
+            imageUrl: data.url,
+            proxyUrl: getProxyUrl(data.url),
+            bucket: data.bucket,
+            path: data.path,
           };
         })
       );
 
       onImagesAdded(newImages);
     },
-    [onImagesAdded]
+    [onImagesAdded, uploadFile]
   );
 
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUrlInput(e.target.value);
-    const result = validateUrl(e.target.value);
-    setInputError(!e.target.value.trim() || result.valid ? null : result.error);
+    const value = e.target.value;
+    setUrlInput(value);
+    const { valid, error } = validateUrl(value);
+    setInputError(value.trim() && !valid ? error : null);
   };
 
   const onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Enter (either press just Enter or ctrl/cmd+Enter)
-    if (
-      e.key === 'Enter' &&
-      !e.shiftKey &&
-      !e.altKey &&
-      !e.ctrlKey &&
-      !e.metaKey &&
-      urlInput.trim()
-    ) {
-      e.preventDefault();
-      handleUrlSubmit();
-    }
-    // (Optionally allow Cmd+Enter for legacy)
-    if (e.key === 'Enter' && e.metaKey && urlInput.trim()) {
+    if (e.key === 'Enter' && !e.shiftKey && urlInput.trim()) {
       e.preventDefault();
       handleUrlSubmit();
     }
   };
 
-  // Determine if any validation errors exist for current input
-  const urlCheck = validateUrl(urlInput);
+  const { valid: urlValid } = validateUrl(urlInput);
   const disableAddButton =
-    !urlInput.trim() || !urlCheck.valid || remainingImageCount === 0;
+    !urlInput.trim() || !urlValid || remainingImageCount === 0 || isUploading;
 
   return (
     <div className="space-y-6">
-      {/* Privacy Notice */}
-      {/* <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex gap-3">
-        <div className="text-xs text-green-700">
-          <p className="font-semibold mb-1">Privacy & Security</p>
-          <p>
-            Your images are analyzed locally and automatically deleted after 7
-            days. We never store or share your data.
-          </p>
-        </div>
-      </div> */}
-
       <div
         onDrop={handleDrop}
         onDragOver={(e) => {
@@ -270,10 +237,11 @@ const ImageUploader = ({
         }}
         onDragLeave={() => setIsDragging(false)}
         className={cn(
-          'relative rounded-xl border-2 border-dashed p-12 transition-all duration-300',
+          'relative cursor-pointer rounded-xl border-2 border-dashed p-12 transition-all duration-300',
           isDragging
             ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300 bg-white hover:border-blue-400'
+            : 'border-gray-300 bg-white hover:border-blue-400',
+          remainingImageCount === 0 && 'cursor-not-allowed opacity-50'
         )}
       >
         <input
@@ -281,11 +249,11 @@ const ImageUploader = ({
           multiple
           accept="image/*"
           onChange={handleFileInput}
-          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+          className="absolute inset-0 opacity-0"
           disabled={remainingImageCount === 0}
         />
 
-        <div className="flex flex-col items-center justify-center space-y-4 text-center">
+        <div className="pointer-events-none flex flex-col items-center justify-center space-y-4 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-purple-500 shadow-lg">
             {isUploading ? (
               <Loader2 className="mx-auto h-8 w-8 animate-spin text-white" />
@@ -293,54 +261,49 @@ const ImageUploader = ({
               <Upload className="h-8 w-8 text-white" />
             )}
           </div>
-          <div>
-            <h3 className="mb-1 text-lg font-semibold">
-              {isUploading ? 'Uploading...' : 'Drop images here'}
-            </h3>
-            {!isUploading && (
-              <p className="text-sm text-gray-500">
-                or click to browse your files
-              </p>
-            )}
-          </div>
+          <h3 className="text-lg font-semibold">
+            {isUploading
+              ? 'Uploading...'
+              : remainingImageCount === 0
+                ? 'Limit reached'
+                : 'Drop images here'}
+          </h3>
+          {!isUploading && remainingImageCount > 0 && (
+            <p className="text-sm text-gray-500">or click to browse</p>
+          )}
         </div>
       </div>
 
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-gray-300" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-gray-50 px-2 text-gray-500">Or</span>
-        </div>
+      <div className="relative flex items-center">
+        <div className="grow border-t border-gray-300" />
+        <span className="mx-4 text-sm text-gray-500 uppercase">Or</span>
+        <div className="grow border-t border-gray-300" />
       </div>
 
-      <div className="space-y-3">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <LinkIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <Input
-              placeholder="Paste image URL"
-              value={urlInput}
-              onChange={onInputChange}
-              className={`w-full rounded-lg border py-2 pr-3 pl-10 focus:ring-2 focus:ring-blue-500 focus:outline-none ${
-                inputError
-                  ? 'border-red-400 focus:ring-red-400'
-                  : 'border-gray-300'
-              }`}
-              onKeyDown={onInputKeyDown}
-              disabled={remainingImageCount === 0}
-            />
-            {inputError && (
-              <div className="absolute right-0 left-0 mt-1 text-xs text-red-500">
-                {inputError}
-              </div>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <LinkIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Input
+            placeholder="Paste image URL"
+            value={urlInput}
+            onChange={onInputChange}
+            onKeyDown={onInputKeyDown}
+            className={cn(
+              'pr-3 pl-10',
+              inputError
+                ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
+                : ''
             )}
-          </div>
-          <Button onClick={handleUrlSubmit} disabled={disableAddButton}>
-            Submit
-          </Button>
+            disabled={remainingImageCount === 0 || isUploading}
+          />
+          {inputError && (
+            <p className="mt-1 text-xs text-red-500">{inputError}</p>
+          )}
         </div>
+
+        <Button onClick={handleUrlSubmit} disabled={disableAddButton}>
+          Submit
+        </Button>
       </div>
     </div>
   );

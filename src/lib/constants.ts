@@ -4,7 +4,7 @@ import { ImageInfo } from '@/lib/types';
 const EXAMPLE_IMAGE_URL = `${env.SUPABASE_URL}/storage/v1/object/public/public-assets/static/example.png`;
 
 export const exampleImage: ImageInfo = {
-  id: 'cmqlgj',
+  id: '00000000-0000-0000-0000-000000000000',
   imageUrl: EXAMPLE_IMAGE_URL,
   proxyUrl: `/api/image-proxy?url=${encodeURIComponent(EXAMPLE_IMAGE_URL)}`,
   isAnalyzing: false,
@@ -107,4 +107,11 @@ export const exampleImage: ImageInfo = {
       },
     ],
   },
+};
+
+export const officialUser = {
+  id: env.OFFICIAL_USER_ID,
+  username: 'inspolens.official',
+  displayName: 'InspoLens Official',
+  avatarUrl: `${env.SUPABASE_URL}/storage/v1/object/public/public-assets/users/${env.OFFICIAL_USER_ID}/avatar.png`,
 };

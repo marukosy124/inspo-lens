@@ -33,18 +33,16 @@ export default function Home() {
   }, [images, showExample]);
 
   // Analyzes one image, updates its analysis & isAnalyzing in images state by id
-  const analyzeImage = async (
-    imageId: string,
-    imageUrl: string,
-    proxyUrl: string
-  ) => {
+  const analyzeImage = async ({ id, imageUrl, bucket, path }: ImageInfo) => {
+    if (!imageUrl) throw new Error('Missing remote URL');
+
     // TO-TEST: REMOVE PROXYURL ON PROD
     const colors = (await extractColors(imageUrl, 8)).slice(0, 5); // only get the top 5 colors
 
     try {
       setImages((prev) =>
         prev.map((img) =>
-          img.id === imageId
+          img.id === id
             ? {
                 ...img,
                 isAnalyzing: true,
@@ -53,11 +51,11 @@ export default function Home() {
         )
       );
 
-      const res = await fetch('/api/analyze-image', {
+      let res = await fetch('/api/analyze-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          imageUrl,
+          imageUrl: imageUrl,
           colors,
         }),
       });
@@ -67,20 +65,33 @@ export default function Home() {
         throw new Error(errorText || 'Failed to analyze image');
       }
 
-      const result: ImageAnalysis = await res.json();
-      // TODO: SAVE RESULT TO DB (anonymous -> official; signed in -> real user)
+      const analysis: ImageAnalysis = await res.json();
+
+      res = await fetch('/api/analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...analysis,
+          public: true, // TODO: enable private on UI
+          imagePath: path,
+          imageBucket: bucket,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || 'Failed to save analyis');
+      }
 
       setImages((prev) =>
         prev.map((img) =>
-          img.id === imageId
-            ? { ...img, analysis: result, isAnalyzing: false }
-            : img
+          img.id === id ? { ...img, analysis, isAnalyzing: false } : img
         )
       );
     } catch (err) {
       setImages((prev) =>
         prev.map((img) =>
-          img.id === imageId
+          img.id === id
             ? {
                 ...img,
                 analysis: null,
@@ -123,11 +134,9 @@ export default function Home() {
     incrementUsage();
 
     // For each added image, start analyzing in parallel (do not await all)
-    imagesWithIds.forEach(({ id, imageUrl, proxyUrl }) => {
-      if (imageUrl && proxyUrl) analyzeImage(id, imageUrl, proxyUrl);
+    imagesWithIds.forEach((uploadedImage: ImageInfo) => {
+      analyzeImage(uploadedImage);
     });
-
-    // For reference: could add incrementUsage logic here, etc.
   };
 
   const handleRemoveImage = (id: string) => {

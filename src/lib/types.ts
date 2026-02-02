@@ -14,6 +14,8 @@ export interface ImageInfo {
   id: string;
   imageUrl: string | null;
   proxyUrl: string | null;
+  bucket?: string;
+  path?: string;
   analysis?: ImageAnalysis | null;
   isAnalyzing?: boolean;
   error?: string | null;
@@ -24,4 +26,8 @@ export interface UserProfile {
   username?: string | null;
   avatar_url?: string | null;
   avatar_color?: string;
+}
+
+export interface ErrorResponse {
+  error: string;
 }

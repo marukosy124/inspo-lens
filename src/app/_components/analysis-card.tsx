@@ -116,7 +116,7 @@ const AnalysisCard = ({
   // Content padding
   const contentPadding = layout === 'list' ? 'p-6 md:p-8' : 'p-4';
 
-  const { imageUrl, proxyUrl, analysis, isAnalyzing, error } = image;
+  const { imageUrl, analysis, isAnalyzing, error } = image;
   const [copied, setCopied] = useState<string | null>(null);
 
   const copyToClipboard = async (text: string) => {
