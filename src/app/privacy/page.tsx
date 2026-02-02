@@ -1,4 +1,4 @@
-import Header from '@/components/header';
+import Header from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -11,7 +11,6 @@ export const metadata = {
 export default function PrivacyPage() {
   return (
     <>
-      <Header />
       <main className="container mx-auto flex min-h-screen max-w-3xl flex-col px-5 pt-12">
         <Link href="/" className="mb-6 inline-block">
           <Button

@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { PasswordInput } from '@/components/auth/password-input';
 import { supabaseClient } from '@/lib/supabase/client';
 
-export function ResetPasswordForm({
+export default function ResetPasswordForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<'div'>) {

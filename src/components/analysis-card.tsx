@@ -1,4 +1,4 @@
-import CustomTooltip from '@/components/custom-tooltip';
+import { CustomTooltip } from '@/components/custom-tooltip';
 import { Button } from '@/components/ui/button';
 import { Color, ImageInfo } from '@/lib/types';
 import { Check, Copy, Loader2, X } from 'lucide-react';

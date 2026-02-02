@@ -1,7 +1,7 @@
 'use client';
 
-import AnalysisCard from '@/app/_components/analysis-card';
-import ImageUploader from '@/app/_components/image-uploader';
+import AnalysisCard from '@/components/analysis-card';
+import ImageUploader from '@/components/image-uploader';
 import { useUsageLimit } from '@/hooks/use-usage-limit';
 import { ImageInfo, ImageAnalysis } from '@/lib/types';
 import { AlertCircle, LayoutGrid, List } from 'lucide-react';

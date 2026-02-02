@@ -1,4 +1,4 @@
-import Header from '@/components/header';
+import Header from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -11,7 +11,6 @@ export const metadata = {
 export default function TermsPage() {
   return (
     <>
-      <Header />
       <main className="container mx-auto flex min-h-screen max-w-3xl flex-col px-5 pt-12">
         <Link href="/" className="mb-6 inline-block">
           <Button
@@ -25,14 +24,14 @@ export default function TermsPage() {
         </Link>
 
         <article className="space-y-8 rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-          <header>
+          <div>
             <h1 className="text-3xl font-bold text-gray-900">
               Terms of Service
             </h1>
             <p className="mt-1 text-sm text-gray-600">
               Last updated: November 30, 2025
             </p>
-          </header>
+          </div>
 
           <section className="space-y-5 leading-relaxed text-gray-700">
             <p>By using InspoLens, you agree to these simple terms.</p>

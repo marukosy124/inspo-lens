@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import Footer from '@/app/_components/footer';
+import Footer from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/sonner';
-import Header from '@/components/header';
+import Header from '@/components/layout/header';
 import { AuthProvider } from '@/lib/context/auth-context';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
