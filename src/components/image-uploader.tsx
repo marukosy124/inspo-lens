@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Upload, LinkIcon, Loader2 } from 'lucide-react';
+import { Upload, Loader2 } from 'lucide-react';
 import {
   cn,
   generateId,
@@ -26,13 +26,17 @@ const ImageUploader = ({
 }: ImageUploaderProps) => {
   const [urlInput, setUrlInput] = useState('');
   const [isDragging, setIsDragging] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [isUploadingUrl, setIsUploadingUrl] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
 
-  const getProxyUrl = (imageUrl: string) =>
-    `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`;
+  const getProxyUrl = useCallback(
+    (imageUrl: string) =>
+      `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`,
+    []
+  );
 
-  const getSignedUploadUrl = async (fileName: string) => {
+  const getSignedUploadUrl = useCallback(async (fileName: string) => {
     const params = new URLSearchParams({ filename: fileName, public: 'true' });
     const res = await fetch(`/api/storage/signed-upload-url?${params}`);
     if (!res.ok) {
@@ -41,9 +45,9 @@ const ImageUploader = ({
       throw new Error(errorText);
     }
     return res.json() as Promise<GetSignedUploadUrlResponse>;
-  };
+  }, []);
 
-  const getUploadedUrl = async (bucket: string, path: string) => {
+  const getUploadedUrl = useCallback(async (bucket: string, path: string) => {
     const params = new URLSearchParams({ bucket, path, public: 'true' });
     const res = await fetch(`/api/storage/uploaded-url?${params}`);
     if (!res.ok) {
@@ -57,57 +61,59 @@ const ImageUploader = ({
       throw new Error(data.error);
     }
     return data as GetUploadedUrlResponse;
-  };
+  }, []);
 
-  const uploadFile = async (file: File) => {
-    try {
-      setIsUploading(true);
+  const uploadFile = useCallback(
+    async (file: File) => {
+      try {
+        const { signedUrl, path, bucket } = await getSignedUploadUrl(file.name);
 
-      const { signedUrl, path, bucket } = await getSignedUploadUrl(file.name);
+        const uploadRes = await fetch(signedUrl, {
+          method: 'PUT',
+          body: file,
+          headers: { 'Content-Type': file.type },
+        });
+        if (!uploadRes.ok) {
+          const errorText = await uploadRes.text();
+          toast.error(`Upload failed: ${errorText}`);
+          throw new Error(errorText);
+        }
 
-      const uploadRes = await fetch(signedUrl, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type },
-      });
-      if (!uploadRes.ok) {
-        const errorText = await uploadRes.text();
-        toast.error(`Upload failed: ${errorText}`);
-        throw new Error(errorText);
+        return await getUploadedUrl(bucket, path);
+      } catch (err) {
+        console.error('Upload error:', err);
+        return undefined;
       }
+    },
+    [getSignedUploadUrl, getUploadedUrl]
+  );
 
-      return await getUploadedUrl(bucket, path);
-    } catch (err) {
-      console.error('Upload error:', err);
-      return undefined;
-    } finally {
-      setIsUploading(false);
-    }
-  };
+  const downloadAndUploadRemoteImage = useCallback(
+    async (url: string) => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          const errorText = await res.text();
+          toast.error(`Failed to fetch image: ${errorText}`);
+          throw new Error(errorText);
+        }
 
-  const downloadAndUploadRemoteImage = async (url: string) => {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) {
-        const errorText = await res.text();
-        toast.error(`Failed to fetch image: ${errorText}`);
-        throw new Error(errorText);
+        const blob = await res.blob();
+        const type = res.headers.get('content-type') || blob.type;
+        const ext = getImageExtensionFromMime(type);
+        const fileName = `remote-${generateId()}.${ext}`;
+        const file = new File([blob], fileName, { type });
+
+        return await uploadFile(file);
+      } catch (err) {
+        console.error('Remote upload error:', err);
+        return undefined;
       }
+    },
+    [uploadFile]
+  );
 
-      const blob = await res.blob();
-      const type = res.headers.get('content-type') || blob.type;
-      const ext = getImageExtensionFromMime(type);
-      const fileName = `remote-${generateId()}.${ext}`;
-      const file = new File([blob], fileName, { type });
-
-      return await uploadFile(file);
-    } catch (err) {
-      console.error('Remote upload error:', err);
-      return undefined;
-    }
-  };
-
-  const validateUrl = (raw: string) => {
+  const validateUrl = useCallback((raw: string) => {
     const val = raw.trim();
     if (!val) return { valid: false, url: '', error: null };
     if (val.includes('\n'))
@@ -117,7 +123,7 @@ const ImageUploader = ({
     if (!isValidUrl(val))
       return { valid: false, url: val, error: 'Invalid URL' };
     return { valid: true, url: val, error: null };
-  };
+  }, []);
 
   const handleUrlSubmit = useCallback(async () => {
     const { valid, url, error } = validateUrl(urlInput);
@@ -127,7 +133,7 @@ const ImageUploader = ({
     }
 
     setInputError(null);
-    setIsUploading(true);
+    setIsUploadingUrl(true);
 
     try {
       const data = await downloadAndUploadRemoteImage(url);
@@ -150,9 +156,15 @@ const ImageUploader = ({
     } catch {
       setInputError('Failed to process URL');
     } finally {
-      setIsUploading(false);
+      setIsUploadingUrl(false);
     }
-  }, [urlInput, onImagesAdded, downloadAndUploadRemoteImage]);
+  }, [
+    urlInput,
+    onImagesAdded,
+    downloadAndUploadRemoteImage,
+    validateUrl,
+    getProxyUrl,
+  ]);
 
   const handleDrop = useCallback(
     async (e: React.DragEvent) => {
@@ -162,73 +174,96 @@ const ImageUploader = ({
       const files = Array.from(e.dataTransfer.files).filter((f) =>
         f.type.startsWith('image/')
       );
-      const newImages = await Promise.all(
-        files.map(async (file) => {
-          const data = await uploadFile(file);
-          if (!data?.url) {
-            toast.error('Upload failed for dropped file');
-            throw new Error('Upload failed');
-          }
-          return {
-            id: generateId(),
-            imageUrl: data.url,
-            proxyUrl: getProxyUrl(data.url),
-            bucket: data.bucket,
-            path: data.path,
-          };
-        })
-      );
 
-      onImagesAdded(newImages);
+      setIsUploadingFile(true);
+
+      try {
+        const newImages = await Promise.all(
+          files.map(async (file) => {
+            const data = await uploadFile(file);
+            if (!data?.url) {
+              toast.error('Upload failed for dropped file');
+              throw new Error('Upload failed');
+            }
+            return {
+              id: generateId(),
+              imageUrl: data.url,
+              proxyUrl: getProxyUrl(data.url),
+              bucket: data.bucket,
+              path: data.path,
+            };
+          })
+        );
+
+        onImagesAdded(newImages);
+      } finally {
+        setIsUploadingFile(false);
+      }
     },
-    [onImagesAdded, uploadFile]
+    [onImagesAdded, uploadFile, getProxyUrl]
   );
 
   const handleFileInput = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(e.target.files || []);
-      const newImages = await Promise.all(
-        files.map(async (file) => {
-          const data = await uploadFile(file);
-          if (!data?.url) {
-            toast.error('Upload failed for selected file');
-            throw new Error('Upload failed');
-          }
-          return {
-            id: generateId(),
-            imageUrl: data.url,
-            proxyUrl: getProxyUrl(data.url),
-            bucket: data.bucket,
-            path: data.path,
-          };
-        })
-      );
 
-      onImagesAdded(newImages);
+      setIsUploadingFile(true);
+
+      try {
+        const newImages = await Promise.all(
+          files.map(async (file) => {
+            const data = await uploadFile(file);
+            if (!data?.url) {
+              toast.error('Upload failed for selected file');
+              throw new Error('Upload failed');
+            }
+            return {
+              id: generateId(),
+              imageUrl: data.url,
+              proxyUrl: getProxyUrl(data.url),
+              bucket: data.bucket,
+              path: data.path,
+            };
+          })
+        );
+
+        onImagesAdded(newImages);
+      } finally {
+        setIsUploadingFile(false);
+      }
     },
-    [onImagesAdded, uploadFile]
+    [onImagesAdded, uploadFile, getProxyUrl]
   );
 
-  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setUrlInput(value);
-    const { valid, error } = validateUrl(value);
-    setInputError(value.trim() && !valid ? error : null);
-  };
+  const onInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setUrlInput(value);
+      const { valid, error } = validateUrl(value);
+      setInputError(value.trim() && !valid ? error : null);
+    },
+    [validateUrl]
+  );
 
-  const onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey && urlInput.trim()) {
-      e.preventDefault();
-      handleUrlSubmit();
-    }
-  };
+  const onInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter' && !e.shiftKey && urlInput.trim()) {
+        e.preventDefault();
+        handleUrlSubmit();
+      }
+    },
+    [urlInput, handleUrlSubmit]
+  );
 
   const { valid: urlValid } = validateUrl(urlInput);
   const disableAddButton =
-    !urlInput.trim() || !urlValid || remainingImageCount === 0 || isUploading;
+    !urlInput.trim() ||
+    !urlValid ||
+    remainingImageCount === 0 ||
+    isUploadingUrl;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div
         onDrop={handleDrop}
         onDragOver={(e) => {
@@ -237,11 +272,11 @@ const ImageUploader = ({
         }}
         onDragLeave={() => setIsDragging(false)}
         className={cn(
-          'relative cursor-pointer rounded-xl border-2 border-dashed p-12 transition-all duration-300',
+          'group relative cursor-pointer rounded-3xl border-2 border-dashed p-16 transition-all duration-300',
           isDragging
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300 bg-white hover:border-blue-400',
-          remainingImageCount === 0 && 'cursor-not-allowed opacity-50'
+            ? 'border-blue-400 bg-linear-to-br from-blue-50 to-purple-50 shadow-lg shadow-blue-500/10'
+            : 'border-stone-300/60 bg-linear-to-br from-white to-stone-50/30 hover:border-blue-300 hover:shadow-md',
+          remainingImageCount === 0 && 'cursor-not-allowed opacity-60'
         )}
       >
         <input
@@ -249,60 +284,99 @@ const ImageUploader = ({
           multiple
           accept="image/*"
           onChange={handleFileInput}
-          className="absolute inset-0 opacity-0"
-          disabled={remainingImageCount === 0}
+          className="absolute inset-0 cursor-pointer opacity-0"
+          disabled={remainingImageCount === 0 || isUploadingFile}
         />
 
-        <div className="pointer-events-none flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-purple-500 shadow-lg">
-            {isUploading ? (
-              <Loader2 className="mx-auto h-8 w-8 animate-spin text-white" />
+        <div className="pointer-events-none flex flex-col items-center justify-center space-y-5 text-center">
+          <div
+            className={cn(
+              'flex h-20 w-20 items-center justify-center rounded-2xl transition-all duration-300',
+              isDragging
+                ? 'scale-110'
+                : isUploadingFile
+                  ? 'bg-blue-100'
+                  : 'bg-blue-100 group-hover:scale-105'
+            )}
+          >
+            {isUploadingFile ? (
+              <Loader2
+                className="h-9 w-9 animate-spin text-blue-600"
+                strokeWidth={2.5}
+              />
             ) : (
-              <Upload className="h-8 w-8 text-white" />
+              <Upload
+                className={cn(
+                  'h-9 w-9',
+                  isDragging ? 'text-white' : 'text-blue-600'
+                )}
+                strokeWidth={2.5}
+              />
             )}
           </div>
-          <h3 className="text-lg font-semibold">
-            {isUploading
-              ? 'Uploading...'
-              : remainingImageCount === 0
-                ? 'Limit reached'
-                : 'Drop images here'}
-          </h3>
-          {!isUploading && remainingImageCount > 0 && (
-            <p className="text-sm text-gray-500">or click to browse</p>
-          )}
+
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold text-stone-900">
+              {isUploadingFile
+                ? 'Uploading...'
+                : remainingImageCount === 0
+                  ? 'Daily limit reached'
+                  : 'Drop your images here'}
+            </h3>
+            {!isUploadingFile && remainingImageCount > 0 && (
+              <p className="text-sm font-light text-stone-500">
+                or click anywhere to browse your files
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
       <div className="relative flex items-center">
-        <div className="grow border-t border-gray-300" />
-        <span className="mx-4 text-sm text-gray-500 uppercase">Or</span>
-        <div className="grow border-t border-gray-300" />
+        <div className="grow border-t border-stone-200" />
+        <span className="mx-5 text-xs font-medium tracking-wider text-stone-400 uppercase">
+          Or paste a link
+        </span>
+        <div className="grow border-t border-stone-200" />
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         <div className="relative flex-1">
-          <LinkIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
-            placeholder="Paste image URL"
+            placeholder="https://example.com/image.jpg"
             value={urlInput}
             onChange={onInputChange}
             onKeyDown={onInputKeyDown}
             className={cn(
-              'pr-3 pl-10',
+              'h-12 border-stone-200 bg-white/80 shadow-sm backdrop-blur-sm transition-all duration-200',
+              'focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20',
+              'placeholder:text-stone-400',
               inputError
-                ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
+                ? 'border-red-300 focus:border-red-400 focus:ring-red-500/20'
                 : ''
             )}
-            disabled={remainingImageCount === 0 || isUploading}
+            disabled={remainingImageCount === 0 || isUploadingUrl}
           />
           {inputError && (
-            <p className="mt-1 text-xs text-red-500">{inputError}</p>
+            <p className="mt-2 text-xs font-medium text-red-600">
+              {inputError}
+            </p>
           )}
         </div>
 
-        <Button onClick={handleUrlSubmit} disabled={disableAddButton}>
-          Submit
+        <Button
+          onClick={handleUrlSubmit}
+          disabled={disableAddButton}
+          className="h-12 px-6 shadow-sm transition-all duration-200 hover:shadow-md"
+        >
+          {isUploadingUrl ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Submitting
+            </>
+          ) : (
+            'Submit'
+          )}
         </Button>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/sonner';
 import Header from '@/components/layout/header';
 import { AuthProvider } from '@/lib/context/auth-context';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { ModalProvider } from '@/components/providers/modal-provider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -51,6 +52,7 @@ export default async function RootLayout({
           {children}
           <Footer />
           <Toaster />
+          <ModalProvider />
         </AuthProvider>
       </body>
     </html>

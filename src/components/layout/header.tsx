@@ -1,31 +1,21 @@
 'use client';
 
-import { AuthModal, AuthMode } from '@/components/auth/auth-modal';
 import SignInButton from '@/components/auth/sign-in-button';
 import SignUpButton from '@/components/auth/sign-up-button';
-import { CurrentUserAvatar } from '@/components/current-user-avatar';
+import { CurrentUserAvatar } from '@/components/user/current-user-avatar';
 import { useAuth } from '@/lib/context/auth-context';
 import { Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
 
 export default function Header() {
   const { user } = useAuth();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<Partial<AuthMode>>('sign-in');
-
-  const openModal = (mode: 'sign-in' | 'sign-up') => {
-    setModalMode(mode);
-    setIsModalOpen(true);
-  };
-
   return (
     <header
-      className="sticky top-0 z-30 backdrop-blur-sm"
-      style={{ WebkitBackdropFilter: 'blur(8px)' }}
+      className="sticky top-0 z-30 border-b border-stone-200/40 bg-white/60 backdrop-blur-md"
+      style={{ WebkitBackdropFilter: 'blur(12px)' }}
     >
-      <div className="flex h-15 w-full items-center justify-between px-5 select-none">
+      <div className="flex h-16 w-full items-center justify-between px-6 select-none md:px-8">
         <Link
           href="/"
           className="group flex items-center space-x-3"
@@ -39,21 +29,13 @@ export default function Header() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-2">
-          {user ? (
+        <div className="flex items-center gap-2.5">
+          {user && !user?.is_official ? (
             <CurrentUserAvatar user={user} />
           ) : (
             <>
-              <SignInButton onClick={() => openModal('sign-in')} />
-              <SignUpButton onClick={() => openModal('sign-up')} />
-              <AuthModal
-                open={isModalOpen}
-                onOpenChange={setIsModalOpen}
-                mode={modalMode}
-                onModeChange={setModalMode}
-                initialMode={modalMode}
-                trigger={null}
-              />
+              <SignInButton />
+              <SignUpButton />
             </>
           )}
         </div>

@@ -1,15 +1,19 @@
 import { CustomTooltip } from '@/components/custom-tooltip';
 import { Button } from '@/components/ui/button';
-import { Color, ImageInfo } from '@/lib/types';
-import { Check, Copy, Loader2, X } from 'lucide-react';
+import { UserAvatar } from '@/components/user/user-avatar';
+import { Color, CompleteUser, ImageInfo } from '@/lib/types';
+import { BookmarkIcon, Check, Copy, Loader2, X } from 'lucide-react';
 import Image from 'next/image';
 import { useState, MouseEvent } from 'react';
 
 interface AnalysisCardProps {
+  user: CompleteUser | null;
   image: ImageInfo;
   layout: 'list' | 'stacked';
   showRemove?: boolean;
+  isSaved?: boolean;
   onRemove?: () => void;
+  onSave?: () => void;
 }
 
 interface CopyAllButtonProps {
@@ -99,9 +103,11 @@ const ColorPalette = ({ colors, copied, onCopy }: ColorExtractorProps) => {
 
 const AnalysisCard = ({
   image,
-  onRemove,
   layout,
   showRemove = true,
+  isSaved,
+  onRemove,
+  onSave,
 }: AnalysisCardProps) => {
   // Determine the main card layout classes
   const containerClasses =
@@ -241,6 +247,15 @@ const AnalysisCard = ({
         ) : (
           <>
             <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                {image.creator && <UserAvatar user={image.creator} />}
+                {onSave != null && (
+                  <Button variant="outline" onClick={onSave}>
+                    <BookmarkIcon className={isSaved ? 'fill-current' : ''} />
+                    Save
+                  </Button>
+                )}
+              </div>
               {/* 1. Search Term as Title */}
               {analysis?.searchTerm && (
                 <div className="flex items-baseline gap-2">

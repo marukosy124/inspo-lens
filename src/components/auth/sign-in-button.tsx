@@ -1,10 +1,22 @@
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { useModalStore } from '@/stores/use-modal-store';
 
-export default function SignInButton(props: React.ComponentProps<'button'>) {
+export default function SignInButton({
+  className,
+  ...props
+}: React.ComponentProps<'button'>) {
+  const { open } = useModalStore();
+
   return (
     <Button
-      variant="ghost"
-      className="font-medium text-blue-600 transition-colors hover:bg-blue-50/50 hover:text-purple-600"
+      size="lg"
+      variant="outline"
+      className={cn(
+        'border-stone-200 backdrop-blur-sm transition-all duration-300 hover:border-stone-300 hover:bg-stone-50/50',
+        className
+      )}
+      onClick={() => open('auth', { initialMode: 'sign-in' })}
       {...props}
     >
       Sign In

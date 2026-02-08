@@ -10,15 +10,16 @@ import {
 import { supabaseClient } from '@/lib/supabase/client';
 import { CompleteUser } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface CurrentUserAvatarProps {
   user: CompleteUser;
 }
 
 export const CurrentUserAvatar = ({ user }: CurrentUserAvatarProps) => {
-  const profileImage = user.user_metadata.avatar_url;
+  const profileImage = user.user_metadata?.avatar_url;
   const avatarColor = user.avatar_color;
-  const name = user.email ?? '?';
+  const name = user.username ?? '?';
   const initials = name
     ?.split(' ')
     ?.map((word) => word[0])
@@ -27,11 +28,16 @@ export const CurrentUserAvatar = ({ user }: CurrentUserAvatarProps) => {
 
   const router = useRouter();
 
-  const logout = async () => {
-    await supabaseClient.auth.signOut();
-    router.push('/');
+  const handleLogut = async () => {
+    try {
+      await supabaseClient.auth.signOut();
+      router.push('/');
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      toast.error('Something went wrong during logout');
+    }
   };
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -48,7 +54,7 @@ export const CurrentUserAvatar = ({ user }: CurrentUserAvatarProps) => {
       <DropdownMenuContent className="mr-4">
         {/* TODO */}
         {/* <DropdownMenuItem>Profile</DropdownMenuItem> */}
-        <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLogut}>Logout</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { supabaseClient } from '@/lib/supabase/client';
 import { CompleteUser, UserProfile } from '@/lib/types';
+import { officialUser } from '@/lib/constants';
 
 type AuthContextType = {
   user: CompleteUser | null;
@@ -34,22 +35,28 @@ export function AuthProvider({
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange(async (_, session) => {
-      let user = session?.user ?? null;
-      if (user) {
+      let user: CompleteUser | null = null;
+      console.log({ session });
+      if (session?.user) {
+        const currentUser = session.user;
+
         // Get the profile (single row)
         const { data: profile, error: profileError } = await supabaseClient
           .from('profiles')
           .select('username, avatar_url, avatar_color')
-          .eq('id', user.id)
+          .eq('id', currentUser.id)
           .single<UserProfile>();
 
         if (profileError) {
           console.error('Profile fetch error:', profileError);
         }
 
-        if (profile && user) {
-          user = { ...user, ...profile };
+        if (profile && currentUser) {
+          user = { ...currentUser, ...profile, is_official: false };
         }
+      } else {
+        // set official user as user otherwise
+        user = officialUser;
       }
       setUser(user);
       setIsLoading(false);

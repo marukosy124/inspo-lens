@@ -46,7 +46,7 @@ export async function POST(
   );
 
   if (error) {
-    console.error('RPC error:', error);
+    console.error('Ceate analysis error:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to create analysis' },
       { status: error.code === 'PGRST116' ? 404 : 500 } // 404 if function not found

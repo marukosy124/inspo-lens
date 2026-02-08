@@ -6,14 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
-import { useState, ReactNode, useRef } from 'react';
+import { useState, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   PasswordInput,
@@ -22,9 +21,7 @@ import {
 import { toast } from 'sonner';
 
 export type AuthMode = 'sign-in' | 'sign-up' | 'forgot-password';
-
 export interface AuthModalProps extends React.ComponentPropsWithoutRef<'div'> {
-  trigger?: ReactNode;
   initialMode?: AuthMode;
   mode?: AuthMode;
   onModeChange?: (mode: AuthMode) => void;
@@ -36,7 +33,6 @@ export interface AuthModalProps extends React.ComponentPropsWithoutRef<'div'> {
 
 export function AuthModal({
   className,
-  trigger,
   initialMode = 'sign-in',
   mode: controlledMode,
   onModeChange,
@@ -147,30 +143,11 @@ export function AuthModal({
     }
   };
 
-  const defaultTrigger =
-    initialMode === 'sign-in' ? (
-      <Button
-        variant="ghost"
-        className="font-medium text-blue-600 transition-colors hover:bg-blue-50/50 hover:text-purple-600"
-      >
-        Sign In
-      </Button>
-    ) : (
-      <Button className="group relative overflow-hidden font-medium text-white shadow-md transition-shadow hover:shadow-lg">
-        <span className="absolute inset-0 bg-linear-to-r from-blue-500 to-purple-500" />
-        <span className="absolute inset-0 -translate-x-full bg-linear-to-r from-blue-600 to-purple-600 transition-transform duration-300 ease-out group-hover:translate-x-0" />
-        <span className="relative z-10">Sign Up</span>
-      </Button>
-    );
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {trigger !== null && (
-        <DialogTrigger asChild>{trigger ?? defaultTrigger}</DialogTrigger>
-      )}
       {/* Set full height flex column for proper sticky behavior */}
       <DialogContent
-        className={cn('max-w-sm overflow-hidden py-8', className)}
+        className={cn('max-w-md overflow-hidden px-8 py-10', className)}
         {...dialogContentProps}
       >
         <div className="relative h-full min-h-[420px]">
@@ -178,7 +155,7 @@ export function AuthModal({
           <div className="relative h-full overflow-hidden">
             <div
               className={cn(
-                'flex h-full transition-transform duration-300 ease-in-out',
+                'flex h-full transition-transform duration-500 ease-out',
                 mode === 'sign-up' && '-translate-x-[33.333%]',
                 mode === 'forgot-password' && '-translate-x-[66.666%]'
               )}
@@ -187,25 +164,33 @@ export function AuthModal({
               {/* Sign In Form */}
               <div className="flex h-full w-1/3 shrink-0 flex-col px-1">
                 <DialogHeader {...dialogHeaderProps}>
-                  <DialogTitle className="text-2xl">Sign In</DialogTitle>
-                  <DialogDescription>
-                    Enter your email below to sign in to your account
+                  <DialogTitle className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
+                    Welcome back
+                  </DialogTitle>
+                  <DialogDescription className="text-stone-600">
+                    Sign in to continue your creative journey
                   </DialogDescription>
                 </DialogHeader>
                 <form
                   onSubmit={handleSignIn}
                   className="flex min-h-0 flex-1 flex-col overflow-hidden px-1"
                 >
-                  <div className="mt-6 flex min-h-0 grow flex-col justify-start gap-6">
+                  <div className="mt-8 flex min-h-0 grow flex-col justify-start gap-5">
                     <div className="grid gap-2">
-                      <Label htmlFor="signin-email">Email</Label>
+                      <Label
+                        htmlFor="signin-email"
+                        className="text-sm font-medium text-stone-700"
+                      >
+                        Email
+                      </Label>
                       <Input
                         id="signin-email"
                         type="email"
-                        placeholder="m@example.com"
+                        placeholder="john@example.com"
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        className="h-11 border-stone-200 bg-white/80 backdrop-blur-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20"
                       />
                     </div>
                     <PasswordInput
@@ -215,37 +200,39 @@ export function AuthModal({
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pr-10"
+                      className="h-11 border-stone-200 bg-white/80 backdrop-blur-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20"
                       label="Password"
                       extraHeaderContent={
                         <button
                           type="button"
                           onClick={() => switchMode('forgot-password')}
-                          className="inline-block cursor-pointer text-sm underline-offset-4 transition-colors hover:text-blue-600 hover:underline"
+                          className="inline-block cursor-pointer text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
                         >
-                          Forgot your password?
+                          Forgot password?
                         </button>
                       }
                     />
                     {error && mode === 'sign-in' && (
-                      <p className="text-sm text-red-500">{error}</p>
+                      <div className="border border-red-200/60 bg-red-50 p-3">
+                        <p className="text-sm text-red-600">{error}</p>
+                      </div>
                     )}
                   </div>
                   {/* Sticky bottom actions */}
-                  <div className="mt-auto flex flex-col gap-2 pt-6 pb-1">
+                  <div className="mt-auto flex flex-col gap-3 pt-8 pb-1">
                     <Button
                       type="submit"
-                      className="w-full"
+                      className="h-11 w-full bg-linear-to-r from-blue-600 to-purple-600 shadow-lg shadow-blue-500/25 transition-all duration-300 hover:from-blue-700 hover:to-purple-700 hover:shadow-xl hover:shadow-blue-500/30"
                       disabled={isLoading}
                     >
                       {isLoading ? 'Signing in...' : 'Sign In'}
                     </Button>
-                    <div className="text-center text-sm">
+                    <div className="text-center text-sm text-stone-600">
                       Don&apos;t have an account?{' '}
                       <button
                         type="button"
                         onClick={() => switchMode('sign-up')}
-                        className="cursor-pointer underline underline-offset-4 transition-colors hover:text-blue-600"
+                        className="cursor-pointer font-medium text-blue-600 transition-colors hover:text-blue-700"
                       >
                         Sign up
                       </button>
@@ -257,16 +244,25 @@ export function AuthModal({
               {/* Sign Up Form */}
               <div className="flex h-full w-1/3 shrink-0 flex-col px-1">
                 <DialogHeader {...dialogHeaderProps}>
-                  <DialogTitle className="text-2xl">Sign up</DialogTitle>
-                  <DialogDescription>Create a new account</DialogDescription>
+                  <DialogTitle className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
+                    Create account
+                  </DialogTitle>
+                  <DialogDescription className="text-stone-600">
+                    Start discovering and saving inspiration
+                  </DialogDescription>
                 </DialogHeader>
                 <form
                   onSubmit={handleSignUp}
                   className="flex min-h-0 flex-1 flex-col overflow-hidden px-1"
                 >
-                  <div className="mt-6 flex min-h-0 grow flex-col justify-start gap-6">
+                  <div className="mt-8 flex min-h-0 grow flex-col justify-start gap-5">
                     <div className="grid gap-2">
-                      <Label htmlFor="signup-email">Email</Label>
+                      <Label
+                        htmlFor="signup-email"
+                        className="text-sm font-medium text-stone-700"
+                      >
+                        Email
+                      </Label>
                       <Input
                         id="signup-email"
                         type="email"
@@ -274,6 +270,7 @@ export function AuthModal({
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        className="h-11 border-stone-200 bg-white/80 backdrop-blur-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20"
                       />
                     </div>
                     <PasswordInput
@@ -283,7 +280,7 @@ export function AuthModal({
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pr-10"
+                      className="h-11 border-stone-200 bg-white/80 backdrop-blur-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20"
                       label="Password"
                     />
                     <PasswordInput
@@ -293,28 +290,30 @@ export function AuthModal({
                       required
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pr-10"
+                      className="h-11 border-stone-200 bg-white/80 backdrop-blur-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20"
                       label="Confirm Password"
                     />
                     {error && mode === 'sign-up' && (
-                      <p className="text-sm text-red-500">{error}</p>
+                      <div className="border border-red-200/60 bg-red-50 p-3">
+                        <p className="text-sm text-red-600">{error}</p>
+                      </div>
                     )}
                   </div>
                   {/* Sticky bottom actions */}
-                  <div className="mt-auto flex flex-col gap-2 pt-6 pb-1">
+                  <div className="mt-auto flex flex-col gap-3 pt-8 pb-1">
                     <Button
                       type="submit"
-                      className="w-full"
+                      className="h-11 w-full bg-linear-to-r from-blue-600 to-purple-600 shadow-lg shadow-blue-500/25 transition-all duration-300 hover:from-blue-700 hover:to-purple-700 hover:shadow-xl hover:shadow-blue-500/30"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Creating an account...' : 'Sign up'}
+                      {isLoading ? 'Creating account...' : 'Sign up'}
                     </Button>
-                    <div className="text-center text-sm">
+                    <div className="text-center text-sm text-stone-600">
                       Already have an account?{' '}
                       <button
                         type="button"
                         onClick={() => switchMode('sign-in')}
-                        className="cursor-pointer underline underline-offset-4 transition-colors hover:text-blue-600"
+                        className="cursor-pointer font-medium text-blue-600 transition-colors hover:text-blue-700"
                       >
                         Sign In
                       </button>
@@ -326,31 +325,33 @@ export function AuthModal({
               {/* Forgot Password Form */}
               <div className="flex h-full w-1/3 shrink-0 flex-col px-1">
                 <DialogHeader {...dialogHeaderProps}>
-                  <DialogTitle className="text-2xl">
-                    {success ? 'Check Your Email' : 'Reset Your Password'}
+                  <DialogTitle className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
+                    {success ? 'Check your email' : 'Reset password'}
                   </DialogTitle>
-                  <DialogDescription>
+                  <DialogDescription className="text-stone-600">
                     {success
                       ? 'Password reset instructions sent'
-                      : "Type in your email and we'll send you a link to reset your password"}
+                      : "Enter your email and we'll send you a reset link"}
                   </DialogDescription>
                 </DialogHeader>
                 {success ? (
                   <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                    <div className="mt-6 flex min-h-0 grow flex-col justify-start gap-6">
-                      <p className="text-muted-foreground text-sm">
-                        If you registered using your email and password, you
-                        will receive a password reset email.
-                      </p>
+                    <div className="mt-8 flex min-h-0 grow flex-col justify-start gap-5">
+                      <div className="border border-blue-200/60 bg-linear-to-br from-blue-50 to-purple-50 p-4">
+                        <p className="text-sm leading-relaxed text-stone-700">
+                          If you registered using your email and password, you
+                          will receive a password reset email shortly.
+                        </p>
+                      </div>
                     </div>
                     {/* Sticky bottom actions */}
-                    <div className="mt-auto flex flex-col gap-2 pt-6 pb-1">
-                      <div className="text-center text-sm">
+                    <div className="mt-auto flex flex-col gap-3 pt-8 pb-1">
+                      <div className="text-center text-sm text-stone-600">
                         Remember your password?{' '}
                         <button
                           type="button"
                           onClick={() => switchMode('sign-in')}
-                          className="cursor-pointer underline underline-offset-4 transition-colors hover:text-blue-600"
+                          className="cursor-pointer font-medium text-blue-600 transition-colors hover:text-blue-700"
                         >
                           Sign In
                         </button>
@@ -362,37 +363,45 @@ export function AuthModal({
                     onSubmit={handleForgotPassword}
                     className="flex min-h-0 flex-1 flex-col overflow-hidden px-1"
                   >
-                    <div className="mt-6 flex min-h-0 grow flex-col justify-start gap-6">
+                    <div className="mt-8 flex min-h-0 grow flex-col justify-start gap-5">
                       <div className="grid gap-2">
-                        <Label htmlFor="forgot-email">Email</Label>
+                        <Label
+                          htmlFor="forgot-email"
+                          className="text-sm font-medium text-stone-700"
+                        >
+                          Email
+                        </Label>
                         <Input
                           id="forgot-email"
                           type="email"
-                          placeholder="john@example.com"
+                          placeholder="m@example.com"
                           required
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
+                          className="h-11 border-stone-200 bg-white/80 backdrop-blur-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20"
                         />
                       </div>
                       {error && mode === 'forgot-password' && (
-                        <p className="text-sm text-red-500">{error}</p>
+                        <div className="border border-red-200/60 bg-red-50 p-3">
+                          <p className="text-sm text-red-600">{error}</p>
+                        </div>
                       )}
                     </div>
                     {/* Sticky bottom actions */}
-                    <div className="mt-auto flex flex-col gap-2 pt-6 pb-1">
+                    <div className="mt-auto flex flex-col gap-3 pt-8 pb-1">
                       <Button
                         type="submit"
-                        className="w-full"
+                        className="h-11 w-full bg-linear-to-r from-blue-600 to-purple-600 shadow-lg shadow-blue-500/25 transition-all duration-300 hover:from-blue-700 hover:to-purple-700 hover:shadow-xl hover:shadow-blue-500/30"
                         disabled={isLoading}
                       >
-                        {isLoading ? 'Sending...' : 'Send reset email'}
+                        {isLoading ? 'Sending...' : 'Send reset link'}
                       </Button>
-                      <div className="text-center text-sm">
+                      <div className="text-center text-sm text-stone-600">
                         Remember your password?{' '}
                         <button
                           type="button"
                           onClick={() => switchMode('sign-in')}
-                          className="cursor-pointer underline underline-offset-4 transition-colors hover:text-blue-600"
+                          className="cursor-pointer font-medium text-blue-600 transition-colors hover:text-blue-700"
                         >
                           Sign In
                         </button>
