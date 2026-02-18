@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-type ModalType = 'auth' | 'confirm' | 'alert' | null;
+type ModalType = 'auth' | 'confirm' | 'alert' | 'auth-gate' | null;
 
 interface ModalStore {
   modal: { type: ModalType; props?: unknown } | null;

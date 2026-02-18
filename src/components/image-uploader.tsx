@@ -75,13 +75,13 @@ const ImageUploader = ({
         });
         if (!uploadRes.ok) {
           const errorText = await uploadRes.text();
-          toast.error(`Upload failed: ${errorText}`);
+          toast.error(`Failed to upload: ${errorText}`);
           throw new Error(errorText);
         }
 
         return await getUploadedUrl(bucket, path);
       } catch (err) {
-        console.error('Upload error:', err);
+        console.error('Failed to upload: ', (err as Error)?.message);
         return undefined;
       }
     },

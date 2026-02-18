@@ -2,7 +2,7 @@
 
 import { useUsageLimit } from '@/hooks/use-usage-limit';
 import { ImageInfo, ImageAnalysis } from '@/lib/types';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import useIsTabletOrSmaller from '@/hooks/use-is-tablet-or-smaller';
 import { extractColors } from '@/lib/color-extractor';
 import { useAuth } from '@/lib/context/auth-context';
@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import Hero from '@/components/home/hero';
 import AuthTeaserBanner from '@/components/home/auth-teaser-banner';
 import AnalysisGrid from '@/components/home/analysis-grid';
+import ScrollReveal from '@/components/animation/scroll-reveal';
 
 interface HomePageProps {
   initialAnalyses?: ImageInfo[];
@@ -21,6 +22,13 @@ export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
 
   const [analyses, setAnalyses] = useState<ImageInfo[]>(initialAnalyses);
   const [newlyAddedIds, setNewlyAddedIds] = useState<Set<string>>(new Set());
+  const [domLoaded, setDomLoaded] = useState(false);
+
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setDomLoaded(true);
+  }, []);
 
   const isTabletOrSmaller = useIsTabletOrSmaller();
 
@@ -28,47 +36,13 @@ export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
     setAnalyses(initialAnalyses);
   }, [initialAnalyses]);
 
-  const handleSaveAnalysis = useCallback(
-    async (analysisId: string, isSaved?: boolean | null) => {
-      if (isSaved) {
-        const res = await fetch('/api/analysis/save', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ analysisId }),
-        });
-        if (res.ok) {
-          toast.success('Unsaved!');
-          setAnalyses((prev) =>
-            prev.map((a) =>
-              (a.analysisId ?? a.id) === analysisId
-                ? { ...a, isSaved: false }
-                : a
-            )
-          );
-        } else {
-          const errorText = await res.text();
-          toast.error(`Failed to unsave analysis: ${errorText}`);
-        }
-      } else {
-        const res = await fetch('/api/analysis/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ analysisId }),
-        });
-        if (res.ok) {
-          toast.success('Saved!');
-          setAnalyses((prev) =>
-            prev.map((a) =>
-              (a.analysisId ?? a.id) === analysisId
-                ? { ...a, isSaved: true }
-                : a
-            )
-          );
-        } else {
-          const errorText = await res.text();
-          toast.error(`Failed to save analysis: ${errorText}`);
-        }
-      }
+  const handleSavedChange = useCallback(
+    (analysisId: string, saved: boolean) => {
+      setAnalyses((prev) =>
+        prev.map((a) =>
+          (a.analysisId ?? a.id) === analysisId ? { ...a, isSaved: saved } : a
+        )
+      );
     },
     []
   );
@@ -191,29 +165,38 @@ export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
       />
 
       {/* Explore section */}
-      <section className="relative mt-8 w-full">
-        <h2 className="mb-6 text-xl font-semibold text-stone-800">Explore</h2>
+      {domLoaded && (
+        <section className="relative mt-8 w-full" ref={sectionRef}>
+          <h2 className="mb-6 text-xl font-semibold text-stone-800">Explore</h2>
 
-        {/* Grid */}
-        <AnalysisGrid
-          analyses={analyses}
-          newlyAddedIds={newlyAddedIds}
-          user={user}
-          onSave={handleSaveAnalysis}
-        />
+          {/* Grid */}
+          <AnalysisGrid
+            analyses={analyses}
+            newlyAddedIds={newlyAddedIds}
+            onSavedChange={handleSavedChange}
+          />
 
-        {/* Overlapping blurred login prompt banner */}
-        {!user?.id && analyses.length > 0 && <AuthTeaserBanner />}
+          {/* Empty state */}
+          {analyses.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50/50 py-16 text-center">
+              <p className="text-stone-500">
+                Upload an image to see your first analysis here.
+              </p>
+            </div>
+          )}
+        </section>
+      )}
 
-        {/* Empty state */}
-        {analyses.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50/50 py-16 text-center">
-            <p className="text-stone-500">
-              Upload an image to see your first analysis here.
-            </p>
-          </div>
-        )}
-      </section>
+      {!user?.id && (
+        <ScrollReveal
+          className="pointer-events-none absolute right-0 -bottom-1 left-0 z-30 flex w-full justify-center"
+          style={{ transform: 'translateY(20%)' }}
+          amount={0.1}
+          delay={0.1}
+        >
+          <AuthTeaserBanner />
+        </ScrollReveal>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useModalStore } from '@/stores/use-modal-store';
+import { useModalStore } from '@/stores';
 
 export default function SignInButton({
   className,

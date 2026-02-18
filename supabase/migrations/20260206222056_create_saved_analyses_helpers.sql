@@ -40,9 +40,8 @@ AS $$
         jsonb_build_object(
             'id',           a.creator_id,
             'username',     p.username,
-            'display_name', p.username,               -- or p.display_name later
             'avatar_url',   p.avatar_url,
-            'avatar_color', p.avatar_color            -- optional, if you want it
+            'avatar_color', p.avatar_color          
         ) AS creator,
 
         a.search_term,

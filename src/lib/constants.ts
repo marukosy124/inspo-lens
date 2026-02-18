@@ -23,7 +23,7 @@ export const exampleImage: ImageInfo = {
   creator: {
     id: officialUser.id,
     username: officialUser.user_metadata.username,
-    display_name: officialUser.user_metadata.display_name,
+    // display_name: officialUser.user_metadata.display_name,
     avatar_color: officialUser.avatar_color,
     avatar_url: officialUser.avatar_url,
   },

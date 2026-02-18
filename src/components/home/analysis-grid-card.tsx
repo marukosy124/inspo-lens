@@ -2,33 +2,33 @@
 
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Bookmark, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 import { ImageInfo } from '@/lib/types';
+import { useRouter } from 'next/navigation';
+import { SaveButton } from '@/components/save-button';
 
 interface AnalysisGridCardProps {
   image: ImageInfo;
   showSave?: boolean;
   isNew?: boolean;
-  onSave?: (e: React.MouseEvent) => void;
-  onClick?: () => void;
+  onSavedChange?: (analysisId: string, saved: boolean) => void;
 }
-
-// TODO: DIRECR TO COMPLETE ANALYSIS PAGE (OR CARD)
 
 export function AnalysisGridCard({
   image,
   showSave = true,
   isNew = false,
-  onSave,
-  onClick,
+  onSavedChange,
 }: AnalysisGridCardProps) {
+  const router = useRouter();
+
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const imageUrl = image.imageUrl ?? '';
-  const isSaved = image.isSaved ?? false;
+  const analysisId = image.analysisId ?? image.id;
   const isAnalyzing = image.isAnalyzing ?? false;
   const title = image.analysis?.searchTerm ?? 'Untitled';
   const colors = image.analysis?.colors ?? [];
@@ -46,11 +46,11 @@ export function AnalysisGridCard({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={onClick}
+      onClick={() => router.push(`/analysis/${image.analysisId}`)}
     >
-      <div className="bg-card relative overflow-hidden rounded-2xl shadow-sm transition-shadow duration-300 hover:shadow-xl">
-        <div className="bg-muted relative aspect-3/4 w-full overflow-hidden">
-          {/* Loading/analyzing state */}
+      <div className="bg-card scrollbar-hide relative overflow-hidden rounded-2xl shadow-sm transition-shadow duration-300 will-change-transform hover:shadow-xl">
+        <div className="bg-muted relative aspect-3/4 w-full overflow-hidden will-change-transform">
+          {/* Loading / analyzing state */}
           {isAnalyzing ? (
             <>
               <Image
@@ -60,11 +60,10 @@ export function AnalysisGridCard({
                 sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                 className="object-cover blur-sm brightness-95 filter"
                 style={{ opacity: 1, transition: 'opacity 0.3s' }}
-                // no onLoad needed for blurred analyzing preview
               />
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-stone-100/70">
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-stone-100/70 dark:bg-stone-900/70">
                 <Loader2 className="h-8 w-8 animate-spin text-stone-400" />
-                <span className="text-sm font-medium text-stone-700">
+                <span className="text-sm font-medium text-stone-700 dark:text-stone-300">
                   Analyzing...
                 </span>
               </div>
@@ -74,12 +73,13 @@ export function AnalysisGridCard({
               {!imageLoaded && (
                 <div className="bg-muted absolute inset-0 animate-pulse" />
               )}
+
               <Image
                 src={imageUrl}
                 alt={title}
                 fill
                 sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                className="object-cover transition-all duration-500 ease-out group-hover:scale-[1.04]"
                 onLoad={() => setImageLoaded(true)}
                 style={{ opacity: imageLoaded ? 1 : 0 }}
               />
@@ -93,34 +93,22 @@ export function AnalysisGridCard({
               />
 
               {/* Save button – appears on hover */}
-              {showSave && onSave && (
-                <motion.button
-                  className="bg-background/80 hover:bg-background/95 absolute top-3 right-3 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-colors"
-                  initial={{ opacity: 0, scale: 0.7 }}
-                  animate={{
-                    opacity: isHovered ? 1 : 0,
-                    scale: isHovered ? 1 : 0.7,
-                  }}
-                  transition={{ duration: 0.2 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSave(e);
-                  }}
-                  aria-label={isSaved ? 'Unsave' : 'Save'}
-                >
-                  <Bookmark
-                    className={`h-5 w-5 transition-colors ${
-                      isSaved
-                        ? 'fill-primary stroke-primary'
-                        : 'stroke-muted-foreground'
-                    }`}
-                  />
-                </motion.button>
+              {showSave && analysisId && (
+                <SaveButton
+                  analysisId={analysisId}
+                  saved={!!image.isSaved}
+                  onSavedChange={(newSaved) =>
+                    onSavedChange?.(analysisId, newSaved)
+                  }
+                  variant="card"
+                  isHovered={isHovered}
+                  stopPropagation
+                />
               )}
 
               {/* Bottom hover content */}
               <motion.div
-                className="absolute right-0 bottom-0 left-0 p-4"
+                className="absolute inset-x-0 bottom-0 p-4"
                 initial={{ opacity: 0, y: 12 }}
                 animate={{
                   opacity: isHovered ? 1 : 0,

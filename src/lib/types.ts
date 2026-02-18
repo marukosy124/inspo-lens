@@ -16,7 +16,7 @@ export interface ImageAnalysis {
 export interface AnalysisCreator {
   id: string;
   username: string | null;
-  display_name: string | null;
+  // display_name: string | null;
   avatar_url: string | null;
   avatar_color: string;
 }
@@ -62,4 +62,5 @@ export interface Analysis {
   colors: Array<{ id: string; hex: string; name: string }>;
   keywords: Array<{ id: string; name: string }>;
   is_saved: boolean | null;
+  image_url: string;
 }

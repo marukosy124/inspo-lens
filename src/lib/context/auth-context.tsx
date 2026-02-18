@@ -36,7 +36,6 @@ export function AuthProvider({
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange(async (_, session) => {
       let user: CompleteUser | null = null;
-      console.log({ session });
       if (session?.user) {
         const currentUser = session.user;
 
