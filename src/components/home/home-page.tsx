@@ -9,8 +9,8 @@ import { useAuth } from '@/lib/context/auth-context';
 import { toast } from 'sonner';
 import Hero from '@/components/home/hero';
 import AuthTeaserBanner from '@/components/home/auth-teaser-banner';
-import AnalysisGrid from '@/components/home/analysis-grid';
 import ScrollReveal from '@/components/animation/scroll-reveal';
+import AnalysisGrid from '@/components/analysis/analysis-grid';
 
 interface HomePageProps {
   initialAnalyses?: ImageInfo[];

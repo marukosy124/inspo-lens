@@ -1,4 +1,4 @@
-import { AnalysisGridCard } from '@/components/home/analysis-grid-card';
+import { AnalysisGridCard } from '@/components/analysis/analysis-grid-card';
 import { ImageInfo } from '@/lib/types';
 
 interface AnalysisGridProps {

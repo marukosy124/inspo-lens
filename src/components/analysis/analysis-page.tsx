@@ -8,8 +8,8 @@ import { AnalysisDetailsView } from '@/components/analysis/analysis-details-view
 import { toast } from 'sonner';
 import AuthTeaserBanner from '@/components/home/auth-teaser-banner';
 import ScrollReveal from '@/components/animation/scroll-reveal';
-import AnalysisGrid from '@/components/home/analysis-grid';
 import { motion } from 'motion/react';
+import AnalysisGrid from '@/components/analysis/analysis-grid';
 
 interface AnalysisPageProps {
   analysis: Analysis;
@@ -33,7 +33,7 @@ export default function AnalysisPage({
       if (id) initial[id] = img.isSaved ?? false;
     });
     return initial;
-  }, []); // only run once on mount
+  }, [relatedAnalyses]); // only run once on mount
 
   const [relatedSavedMap, setRelatedSavedMap] = useState<
     Record<string, boolean>

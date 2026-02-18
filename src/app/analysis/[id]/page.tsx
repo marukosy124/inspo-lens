@@ -2,6 +2,7 @@ import AnalysisPage from '@/components/analysis/analysis-page';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Analysis } from '@/lib/types';
 import { analysisToImageInfo, getAnalysisImageUrl } from '@/lib/utils';
+import { notFound } from 'next/navigation';
 
 type PageProps = {
   params: Promise<{
@@ -32,6 +33,8 @@ export default async function Page({ params }: PageProps) {
       p_offset: 0,
     }
   );
+
+  if (!analysisById) notFound();
 
   // filter out current analysis
   const rows = (analyses ?? []).filter(

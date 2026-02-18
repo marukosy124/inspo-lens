@@ -28,7 +28,7 @@ export const CurrentUserAvatar = ({ user }: CurrentUserAvatarProps) => {
 
   const router = useRouter();
 
-  const handleLogut = async () => {
+  const handleLogout = async () => {
     try {
       await supabaseClient.auth.signOut();
       router.push('/');
@@ -54,7 +54,7 @@ export const CurrentUserAvatar = ({ user }: CurrentUserAvatarProps) => {
       <DropdownMenuContent className="mr-4">
         {/* TODO */}
         {/* <DropdownMenuItem>Profile</DropdownMenuItem> */}
-        <DropdownMenuItem onClick={handleLogut}>Logout</DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
