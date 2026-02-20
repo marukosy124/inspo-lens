@@ -52,8 +52,9 @@ export const CurrentUserAvatar = ({ user }: CurrentUserAvatarProps) => {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="mr-4">
-        {/* TODO */}
-        {/* <DropdownMenuItem>Profile</DropdownMenuItem> */}
+        <DropdownMenuItem onClick={() => router.push('/saved')}>
+          Saved
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
