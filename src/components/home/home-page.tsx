@@ -11,6 +11,7 @@ import Hero from '@/components/home/hero';
 import AuthTeaserBanner from '@/components/home/auth-teaser-banner';
 import ScrollReveal from '@/components/animation/scroll-reveal';
 import AnalysisGrid from '@/components/analysis/analysis-grid';
+import { SHOW_TEASTER_LIMIT } from '@/lib/constants';
 
 interface HomePageProps {
   initialAnalyses?: ImageInfo[];
@@ -187,7 +188,7 @@ export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
         </section>
       )}
 
-      {!user?.id && (
+      {!user?.id && analyses.length > SHOW_TEASTER_LIMIT && (
         <ScrollReveal
           className="pointer-events-none absolute right-0 -bottom-1 left-0 z-30 flex w-full justify-center"
           style={{ transform: 'translateY(20%)' }}

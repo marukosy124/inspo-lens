@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -53,6 +53,10 @@ export function AuthModal({
   const passwordRef = useRef<PasswordInputRef>(null);
   const confirmPasswordRef = useRef<PasswordInputRef>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    setInternalMode(initialMode);
+  }, [initialMode]);
 
   const mode = controlledMode ?? internalMode;
   const open = controlledOpen ?? internalOpen;
@@ -112,7 +116,7 @@ export function AuthModal({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/protected`, // TODO
+          emailRedirectTo: `${window.location.origin}/`,
         },
       });
       if (error) throw error;

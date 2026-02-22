@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { supabaseClient } from '@/lib/supabase/client';
 import { CompleteUser } from '@/lib/types';
+import { BookmarkIcon, LogOutIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -53,9 +54,12 @@ export const CurrentUserAvatar = ({ user }: CurrentUserAvatarProps) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="mr-4">
         <DropdownMenuItem onClick={() => router.push('/saved')}>
+          <BookmarkIcon />
           Saved
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLogout}>
+          <LogOutIcon /> Logout
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

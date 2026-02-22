@@ -2,20 +2,14 @@
 
 import { motion } from 'motion/react';
 import { useState } from 'react';
-import {
-  ArrowLeft,
-  Share2,
-  Check,
-  ExternalLink,
-  Download,
-  Copy,
-} from 'lucide-react';
+import { Share2, Check, ExternalLink, Download, Copy } from 'lucide-react';
 import { ColorPalette } from '@/components/analysis/color-palette';
 import { CopyButton } from '@/components/copy-button';
 import { SaveButton } from '@/components/save-button';
 import { Button } from '@/components/ui/button';
 import { Analysis } from '@/lib/types';
 import Image from 'next/image';
+import { UserAvatar } from '@/components/user/user-avatar';
 
 interface AnalysisDetailsViewProps {
   analysis: Analysis;
@@ -26,7 +20,6 @@ interface AnalysisDetailsViewProps {
   onShare: () => void;
   onOpenExternal: () => void;
   onDownload: () => void;
-  onBack: () => void;
   className?: string;
 }
 
@@ -39,7 +32,6 @@ export function AnalysisDetailsView({
   onShare,
   onOpenExternal,
   onDownload,
-  onBack,
   className = '',
 }: AnalysisDetailsViewProps) {
   const [showFull, setShowFull] = useState(false);
@@ -57,45 +49,34 @@ export function AnalysisDetailsView({
       className={`mb-10 rounded-lg border border-stone-200/30 bg-white/70 p-6 shadow-sm backdrop-blur-md md:mb-12 ${className}`}
     >
       {/* Top bar – Back | Share + Bookmark */}
-      <div className="mb-5 flex items-center justify-between md:mb-6">
+      <div className="mb-5 flex items-center justify-between gap-2 md:mb-6">
         <Button
           variant="ghost"
           size="icon"
           className="bg-background/80 border-border/60 hover:bg-background rounded-lg border shadow-sm backdrop-blur-sm hover:shadow"
-          onClick={onBack}
+          onClick={onShare}
         >
-          <ArrowLeft className="h-5 w-5" />
+          {copied === 'share' ? (
+            <Check className="h-5 w-5 text-emerald-500" />
+          ) : (
+            <Share2 className="h-5 w-5" />
+          )}
         </Button>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="bg-background/80 border-border/60 hover:bg-background rounded-lg border shadow-sm backdrop-blur-sm hover:shadow"
-            onClick={onShare}
-          >
-            {copied === 'share' ? (
-              <Check className="h-5 w-5 text-emerald-500" />
-            ) : (
-              <Share2 className="h-5 w-5" />
-            )}
-          </Button>
-
-          {analysis.id && (
-            <SaveButton
-              analysisId={analysis.id}
-              saved={saved}
-              onSavedChange={onSavedChange}
-              variant="icon"
-            />
-          )}
-        </div>
+        {analysis.id && (
+          <SaveButton
+            analysisId={analysis.id}
+            saved={saved}
+            onSavedChange={onSavedChange}
+            variant="icon"
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-1 items-start gap-8 lg:flex lg:items-stretch">
         {/* Image section */}
         <div className="lg:w-2/5 lg:shrink-0">
-          <div className="space-y-3 lg:sticky lg:top-20">
+          <div className="space-y-4 lg:sticky lg:top-20">
             <div className="group relative overflow-hidden rounded-2xl bg-gray-50/80">
               <div className="relative aspect-3/4 w-full md:aspect-auto md:h-[70vh] lg:aspect-square lg:h-auto">
                 {analysis.image_url && (
@@ -132,15 +113,8 @@ export function AnalysisDetailsView({
               </div>
             </div>
 
-            {analysis.creator?.username && (
-              <div className="flex items-center gap-2.5 px-0.5">
-                <div className="bg-accent text-foreground flex h-7 w-7 items-center justify-center rounded-lg text-xs font-semibold">
-                  {analysis.creator.username.charAt(0).toUpperCase()}
-                </div>
-                <span className="text-muted-foreground text-sm font-medium">
-                  {analysis.creator.username}
-                </span>
-              </div>
+            {analysis.creator && (
+              <UserAvatar user={analysis.creator} size="small" />
             )}
           </div>
         </div>

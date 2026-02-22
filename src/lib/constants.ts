@@ -130,3 +130,5 @@ export const exampleImage: ImageInfo = {
     ],
   },
 };
+
+export const SHOW_TEASTER_LIMIT = 30;

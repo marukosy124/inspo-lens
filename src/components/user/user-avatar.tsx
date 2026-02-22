@@ -1,11 +1,18 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AnalysisCreator } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
-interface CurrentUserAvatarProps {
+interface UserAvatarProps {
   user: AnalysisCreator;
+  size?: 'small' | 'medium';
+  className?: string;
 }
 
-export const UserAvatar = ({ user }: CurrentUserAvatarProps) => {
+export const UserAvatar = ({
+  user,
+  size = 'medium',
+  className,
+}: UserAvatarProps) => {
   const profileImage = user.avatar_url;
   const avatarColor = user.avatar_color;
   const username = (user.username as string) ?? '?';
@@ -15,18 +22,29 @@ export const UserAvatar = ({ user }: CurrentUserAvatarProps) => {
     ?.join('')
     ?.toUpperCase();
 
+  const sizeClasses =
+    size === 'medium'
+      ? { avatar: 'w-8 h-8', text: 'text-sm' }
+      : { avatar: 'h-6 w-6', text: 'text-xs' };
+
   return (
-    <div className="flex items-center gap-x-2">
-      <Avatar>
-        {profileImage && <AvatarImage src={profileImage} alt={initials} />}
+    <div className={cn('flex items-center gap-x-2', className)}>
+      <Avatar className={sizeClasses.avatar}>
+        {profileImage && (
+          <AvatarImage
+            src={profileImage}
+            alt={initials}
+            className={sizeClasses.avatar}
+          />
+        )}
         <AvatarFallback
           style={{ backgroundColor: avatarColor }}
-          className="text-white"
+          className={`text-white ${sizeClasses.avatar} ${sizeClasses.text}`}
         >
           {initials}
         </AvatarFallback>
       </Avatar>
-      <span>{username}</span>
+      <span className={sizeClasses.text}>{username}</span>
     </div>
   );
 };
