@@ -49,7 +49,9 @@ export default async function RootLayout({
       >
         <AuthProvider initialUser={user}>
           <Header />
-          {children}
+          <main className="container mx-auto min-h-screen max-w-7xl px-6">
+            {children}
+          </main>
           <Footer />
           <Toaster />
           <ModalProvider />

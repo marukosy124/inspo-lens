@@ -46,7 +46,7 @@ export function AnalysisDetailsView({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className={`mb-10 rounded-lg border border-stone-200/30 bg-white/70 p-6 shadow-sm backdrop-blur-md md:mb-12 ${className}`}
+      className={`mb-10 rounded-lg border border-stone-200/30 bg-white/70 p-6 shadow-sm backdrop-blur-md ${className}`}
     >
       {/* Top bar – Back | Share + Bookmark */}
       <div className="mb-5 flex items-center justify-between gap-2 md:mb-6">

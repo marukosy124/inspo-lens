@@ -1,7 +1,13 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { SearchX, ArrowLeft, Home, Sparkles } from 'lucide-react';
+import {
+  SearchX,
+  ArrowLeft,
+  Home,
+  Sparkles,
+  ArrowRightIcon,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -102,7 +108,7 @@ export default function AnalysisNotFound() {
               variant="ghost"
               className="text-blue-600 hover:bg-blue-50 hover:text-blue-700"
             >
-              Explore Now →
+              Explore Now <ArrowRightIcon />
             </Button>
           </Link>
         </motion.div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bookmark } from 'lucide-react';
+import { ArrowRight, Bookmark, BookmarkIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/context/auth-context';
 import { ImageInfo } from '@/lib/types';
@@ -57,7 +57,7 @@ export default function SavedPage({
   // Not signed in → encouraging teaser
   if (!user) {
     return (
-      <main className="container mx-auto min-h-screen max-w-7xl px-6 py-16 md:py-20">
+      <div className="py-16 md:py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -102,13 +102,13 @@ export default function SavedPage({
             <AuthTeaserBanner />
           </div>
         </motion.div>
-      </main>
+      </div>
     );
   }
 
   // Signed in
   return (
-    <main className="container mx-auto min-h-screen max-w-7xl p-6">
+    <div className="py-6">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -116,11 +116,15 @@ export default function SavedPage({
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+            <div className="bg-primary/10 rounded-md p-2">
+              <BookmarkIcon className="text-primary h-5 w-5" />
+            </div>
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
               Saved Analyses
             </h1>
           </div>
-          <div className="text-muted-foreground text-sm font-medium">
+
+          <div className="text-muted-foreground text-sm">
             {savedAnalyses.length} saved
           </div>
         </div>
@@ -145,7 +149,7 @@ export default function SavedPage({
             </p>
 
             <Button size="lg" onClick={() => router.push('/')}>
-              Explore Now →
+              Explore Now <ArrowRight />
             </Button>
           </motion.div>
         ) : (
@@ -155,6 +159,6 @@ export default function SavedPage({
           />
         )}
       </motion.div>
-    </main>
+    </div>
   );
 }

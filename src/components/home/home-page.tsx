@@ -12,6 +12,7 @@ import AuthTeaserBanner from '@/components/home/auth-teaser-banner';
 import ScrollReveal from '@/components/animation/scroll-reveal';
 import AnalysisGrid from '@/components/analysis/analysis-grid';
 import { SHOW_TEASTER_LIMIT } from '@/lib/constants';
+import { Sparkles } from 'lucide-react';
 
 interface HomePageProps {
   initialAnalyses?: ImageInfo[];
@@ -167,8 +168,15 @@ export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
 
       {/* Explore section */}
       {domLoaded && (
-        <section className="relative mt-8 w-full" ref={sectionRef}>
-          <h2 className="mb-6 text-xl font-semibold text-stone-800">Explore</h2>
+        <section className="relative mt-8 w-full space-y-4" ref={sectionRef}>
+          <div className="flex items-center gap-2">
+            <div className="bg-primary/10 rounded-md p-1.5">
+              <Sparkles className="text-primary h-3.5 w-3.5" strokeWidth={2} />
+            </div>
+            <h2 className="text-foreground text-lg font-bold tracking-tight">
+              Explore
+            </h2>
+          </div>
 
           {/* Grid */}
           <AnalysisGrid

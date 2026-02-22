@@ -118,7 +118,7 @@ export default function AnalysisPage({
   }, [relatedAnalyses, relatedSavedMap]);
 
   return (
-    <main className="relative container mx-auto mb-10 min-h-screen max-w-7xl flex-1 px-4">
+    <div className="relative mb-10">
       <div className="flex items-start gap-4 py-3">
         <Button
           variant="ghost"
@@ -150,9 +150,9 @@ export default function AnalysisPage({
               className="relative space-y-4 pb-10"
             >
               <div className="flex items-center gap-2">
-                <div className="rounded-lg p-1.5">
+                <div className="bg-primary/10 rounded-md p-1.5">
                   <Sparkles
-                    className="text-foreground/70 h-3.5 w-3.5"
+                    className="text-primary h-3.5 w-3.5"
                     strokeWidth={2}
                   />
                 </div>
@@ -181,6 +181,6 @@ export default function AnalysisPage({
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

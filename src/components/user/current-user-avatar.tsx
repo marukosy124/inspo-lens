@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { supabaseClient } from '@/lib/supabase/client';
 import { CompleteUser } from '@/lib/types';
-import { BookmarkIcon, LogOutIcon } from 'lucide-react';
+import { BookmarkIcon, ImagesIcon, LogOutIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -53,6 +53,10 @@ export const CurrentUserAvatar = ({ user }: CurrentUserAvatarProps) => {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="mr-4">
+        <DropdownMenuItem onClick={() => router.push('/my-analyses')}>
+          <ImagesIcon />
+          My Analyses
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => router.push('/saved')}>
           <BookmarkIcon />
           Saved
