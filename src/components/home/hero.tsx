@@ -25,17 +25,21 @@ export default function Hero({
           direction — instantly.
         </p>
 
-        <div className="flex items-center gap-2 pt-2">
-          <div className="flex items-center gap-2 rounded-full border border-stone-200/60 bg-white/80 px-4 py-2.5 shadow-sm backdrop-blur-sm">
-            <div className="flex items-center gap-1.5">
-              <div className="h-2 w-2 rounded-full bg-linear-to-r from-indigo-500 to-purple-500" />
-              <span className="text-sm font-medium text-stone-700">
-                {remaining}
+        {remaining !== Infinity && (
+          <div className="flex items-center gap-2 pt-2">
+            <div className="flex items-center gap-2 rounded-full border border-stone-200/60 bg-white/80 px-4 py-2.5 shadow-sm backdrop-blur-sm">
+              <div className="flex items-center gap-1.5">
+                <div className="h-2 w-2 rounded-full bg-linear-to-r from-indigo-500 to-purple-500" />
+                <span className="text-sm font-medium text-stone-700">
+                  {remaining}
+                </span>
+              </div>
+              <span className="text-sm text-stone-500">
+                analyses left today
               </span>
             </div>
-            <span className="text-sm text-stone-500">analyses left today</span>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="flex h-full items-center">

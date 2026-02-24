@@ -21,6 +21,7 @@ interface HomePageProps {
 export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
   const { remaining, isLimitReached, incrementUsage } = useUsageLimit();
   const { user } = useAuth();
+  const isAuthenticated = !!user?.id;
 
   const [analyses, setAnalyses] = useState<ImageInfo[]>(initialAnalyses);
   const [newlyAddedIds, setNewlyAddedIds] = useState<Set<string>>(new Set());
@@ -124,13 +125,13 @@ export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
 
   const handleImagesAdded = useCallback(
     async (newImages: ImageInfo[]) => {
-      if (remaining === 0) {
+      if (!isAuthenticated && remaining === 0) {
         toast.error('Daily limit reached! Come back tomorrow.');
         return;
       }
 
-      const toAdd = newImages.slice(0, remaining);
-      if (toAdd.length < newImages.length) {
+      const toAdd = isAuthenticated ? newImages : newImages.slice(0, remaining);
+      if (!isAuthenticated && toAdd.length < newImages.length) {
         toast.warning(`Added ${toAdd.length} (${remaining} remaining today)`);
       }
 
@@ -150,15 +151,13 @@ export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
         analyzeImage(placeholderId, img.imageUrl ?? '', img.bucket, img.path);
       }
     },
-    [remaining, incrementUsage, analyzeImage]
+    [isAuthenticated, remaining, incrementUsage, analyzeImage]
   );
 
   const containerMaxWidth = isTabletOrSmaller ? 'max-w-5xl' : 'max-w-7xl';
 
   return (
-    <div
-      className={`container mx-auto flex-1 px-5 py-12 md:px-10 ${containerMaxWidth} mb-10`}
-    >
+    <div className={`py-6 ${containerMaxWidth} mb-10`}>
       {/* Hero */}
       <Hero
         remaining={remaining}
@@ -196,7 +195,7 @@ export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
         </section>
       )}
 
-      {!user?.id && analyses.length > SHOW_TEASTER_LIMIT && (
+      {!isAuthenticated && analyses.length > SHOW_TEASTER_LIMIT && (
         <ScrollReveal
           className="pointer-events-none absolute right-0 -bottom-1 left-0 z-30 flex w-full justify-center"
           style={{ transform: 'translateY(20%)' }}
