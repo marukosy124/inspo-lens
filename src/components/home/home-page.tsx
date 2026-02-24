@@ -11,8 +11,13 @@ import Hero from '@/components/home/hero';
 import AuthTeaserBanner from '@/components/home/auth-teaser-banner';
 import ScrollReveal from '@/components/animation/scroll-reveal';
 import AnalysisGrid from '@/components/analysis/analysis-grid';
-import { SHOW_TEASTER_LIMIT } from '@/lib/constants';
-import { Sparkles } from 'lucide-react';
+import { ITEMS_PER_PAGE, SHOW_TEASTER_LIMIT } from '@/lib/constants';
+import { Sparkles, Loader2 } from 'lucide-react';
+import { useInView } from 'react-intersection-observer';
+import { analysisToImageInfo } from '@/lib/utils';
+import { Analysis } from '@/lib/types';
+import { supabaseClient } from '@/lib/supabase/client';
+import { Button } from '@/components/ui/button';
 
 interface HomePageProps {
   initialAnalyses?: ImageInfo[];
@@ -26,8 +31,19 @@ export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
   const [analyses, setAnalyses] = useState<ImageInfo[]>(initialAnalyses);
   const [newlyAddedIds, setNewlyAddedIds] = useState<Set<string>>(new Set());
   const [domLoaded, setDomLoaded] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(
+    initialAnalyses.length >= ITEMS_PER_PAGE
+  );
+  const [offset, setOffset] = useState(ITEMS_PER_PAGE);
 
   const sectionRef = useRef<HTMLDivElement>(null);
+
+  // Intersection observer for infinite scroll
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0.5,
+    triggerOnce: false,
+  });
 
   useEffect(() => {
     setDomLoaded(true);
@@ -37,7 +53,60 @@ export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
 
   useEffect(() => {
     setAnalyses(initialAnalyses);
+    setOffset(ITEMS_PER_PAGE);
+    setHasMore(initialAnalyses.length >= ITEMS_PER_PAGE);
   }, [initialAnalyses]);
+
+  // Load more analyses when scrolling
+  const loadMoreAnalyses = useCallback(async () => {
+    if (isLoadingMore || !hasMore) return;
+
+    setIsLoadingMore(true);
+
+    try {
+      let data;
+
+      if (user?.id) {
+        const result = await supabaseClient.rpc(
+          'get_analyses_with_save_status',
+          {
+            p_user_id: user.id,
+            p_limit: ITEMS_PER_PAGE,
+            p_offset: offset,
+          }
+        );
+        data = result.data;
+      } else {
+        const result = await supabaseClient.rpc('get_public_analyses', {
+          p_limit: ITEMS_PER_PAGE,
+          p_offset: offset,
+        });
+        data = result.data;
+      }
+
+      const rows = (data ?? []) as Analysis[];
+      const newAnalyses = rows.map(analysisToImageInfo);
+
+      if (newAnalyses.length < ITEMS_PER_PAGE) {
+        setHasMore(false);
+      }
+
+      setAnalyses((prev) => [...prev, ...newAnalyses]);
+      setOffset((prev) => prev + ITEMS_PER_PAGE);
+    } catch (error) {
+      console.error('Error loading more analyses:', error);
+      toast.error('Failed to load more analyses');
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, hasMore, offset, user?.id]);
+
+  // Trigger load more when scroll trigger is in view
+  useEffect(() => {
+    if (inView && !isLoadingMore && hasMore) {
+      loadMoreAnalyses();
+    }
+  }, [inView, isLoadingMore, hasMore, loadMoreAnalyses]);
 
   const handleSavedChange = useCallback(
     (analysisId: string, saved: boolean) => {
@@ -115,6 +184,8 @@ export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
             return next;
           });
         }, 800);
+
+        toast.success('Analysis complete! Click the card to view details');
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Analysis failed');
         setAnalyses((prev) => prev.filter((a) => a.id !== placeholderId));
@@ -154,6 +225,10 @@ export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
     [isAuthenticated, remaining, incrementUsage, analyzeImage]
   );
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const containerMaxWidth = isTabletOrSmaller ? 'max-w-5xl' : 'max-w-7xl';
 
   return (
@@ -190,6 +265,37 @@ export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
               <p className="text-stone-500">
                 Upload an image to see your first analysis here.
               </p>
+            </div>
+          )}
+
+          {/* Loading more indicator */}
+          {hasMore && analyses.length > 0 && (
+            <div ref={loadMoreRef} className="flex justify-center py-8">
+              {isLoadingMore && (
+                <div className="flex items-center gap-2 text-stone-500">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-sm">Loading more...</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* End of content - Encouragement to create more */}
+          {!hasMore && analyses.length > 0 && (
+            <div className="flex flex-col items-center gap-6 py-8">
+              {/* Divider */}
+              <div className="flex w-full items-center gap-4">
+                <div className="h-px flex-1 bg-linear-to-r from-transparent via-stone-200 to-transparent" />
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-xs font-medium tracking-wider text-stone-400 uppercase">
+                    You`&apos;ve reached the end
+                  </span>
+                  <Button size="xs" variant="link" onClick={scrollToTop}>
+                    Upload images to explore more inspiration ↑
+                  </Button>
+                </div>
+                <div className="h-px flex-1 bg-linear-to-r from-transparent via-stone-200 to-transparent" />
+              </div>
             </div>
           )}
         </section>

@@ -132,3 +132,4 @@ export const exampleImage: ImageInfo = {
 };
 
 export const SHOW_TEASTER_LIMIT = 30;
+export const ITEMS_PER_PAGE = 20;

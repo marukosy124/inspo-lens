@@ -2,6 +2,7 @@ import HomePage from '@/components/home/home-page';
 import { Analysis, ImageInfo } from '@/lib/types';
 import { analysisToImageInfo } from '@/lib/utils';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { ITEMS_PER_PAGE } from '@/lib/constants';
 
 export default async function Home() {
   const supabase = await createSupabaseServerClient();
@@ -15,7 +16,7 @@ export default async function Home() {
     // Authenticated: use personalized function with is_saved
     const { data } = await supabase.rpc('get_analyses_with_save_status', {
       p_user_id: user.id,
-      p_limit: 20,
+      p_limit: ITEMS_PER_PAGE,
       p_offset: 0,
     });
 
@@ -24,7 +25,7 @@ export default async function Home() {
   } else {
     // Guest / not authenticated: use public-only function
     const { data } = await supabase.rpc('get_public_analyses', {
-      p_limit: 20,
+      p_limit: ITEMS_PER_PAGE,
       p_offset: 0,
     });
 
