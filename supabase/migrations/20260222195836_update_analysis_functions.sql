@@ -29,6 +29,8 @@ CREATE OR REPLACE FUNCTION public.get_public_analyses(
 RETURNS SETOF public.analysis_with_save_status
 LANGUAGE sql
 STABLE
+SECURITY DEFINER
+SET search_path = public
 AS $$
     SELECT 
         a.id,
@@ -91,6 +93,8 @@ CREATE OR REPLACE FUNCTION public.get_analyses_with_save_status(
 RETURNS SETOF public.analysis_with_save_status
 LANGUAGE sql
 STABLE
+SECURITY DEFINER
+SET search_path = public
 AS $$
     SELECT 
         a.id,
@@ -157,6 +161,8 @@ CREATE OR REPLACE FUNCTION public.get_public_analysis_by_id(
 RETURNS public.analysis_with_save_status
 LANGUAGE sql
 STABLE
+SECURITY DEFINER
+SET search_path = public
 AS $$
     SELECT 
         a.id,
@@ -207,6 +213,8 @@ CREATE OR REPLACE FUNCTION public.get_analysis_by_id_with_save_status(
 RETURNS public.analysis_with_save_status
 LANGUAGE sql
 STABLE
+SECURITY DEFINER
+SET search_path = public
 AS $$
     SELECT 
         a.id,
@@ -257,12 +265,16 @@ $$;
 -- PERMISSIONS / ACCESS CONTROL
 -- =============================================================================
 
+-- Public functions — accessible by anon and authenticated
+GRANT EXECUTE ON FUNCTION public.get_public_analyses                     TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_public_analysis_by_id               TO anon, authenticated;
+
 -- Personalized / private functions — authenticated users only
 REVOKE EXECUTE ON FUNCTION public.get_analyses_with_save_status          FROM anon;
-GRANT EXECUTE ON FUNCTION public.get_analyses_with_save_status          TO authenticated;
+GRANT  EXECUTE ON FUNCTION public.get_analyses_with_save_status          TO authenticated;
 
 REVOKE EXECUTE ON FUNCTION public.get_analysis_by_id_with_save_status    FROM anon;
-GRANT EXECUTE ON FUNCTION public.get_analysis_by_id_with_save_status    TO authenticated;
+GRANT  EXECUTE ON FUNCTION public.get_analysis_by_id_with_save_status    TO authenticated;
 
 -- =============================================================================
 -- PERFORMANCE INDEXES (recommended)
