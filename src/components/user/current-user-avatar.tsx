@@ -29,16 +29,27 @@ export const CurrentUserAvatar = ({ user }: CurrentUserAvatarProps) => {
 
   const router = useRouter();
 
-  const handleLogout = async () => {
-    try {
-      await supabaseClient.auth.signOut();
-      router.push('/');
-      router.refresh();
-    } catch (err) {
-      console.error(err);
-      toast.error('Something went wrong during logout');
-    }
+  const handleLogout = () => {
+    // Optimistic local clear
+    supabaseClient.auth
+      .signOut({ scope: 'local' })
+      .catch((err) => console.error(err));
+
+    // Non-blocking server sign-out
+    supabaseClient.auth
+      .signOut()
+      .then(() => {
+        toast.success('Logged out');
+        router.push('/');
+        router.refresh();
+      })
+      .catch((err) => {
+        toast.error('Failed to logout, please try again.');
+        console.error(err);
+        router.push('/');
+      });
   };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

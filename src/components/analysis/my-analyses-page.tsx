@@ -58,7 +58,7 @@ export default function MyAnalysesPage({
           </div>
 
           <div className="text-muted-foreground text-sm">
-            {myAnalyses.length} created
+            {myAnalyses.length} items
           </div>
         </div>
 

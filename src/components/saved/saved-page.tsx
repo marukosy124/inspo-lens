@@ -125,7 +125,7 @@ export default function SavedPage({
           </div>
 
           <div className="text-muted-foreground text-sm">
-            {savedAnalyses.length} saved
+            {savedAnalyses.length} items
           </div>
         </div>
 
