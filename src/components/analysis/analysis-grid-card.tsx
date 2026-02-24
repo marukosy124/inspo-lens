@@ -6,7 +6,6 @@ import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 import { ImageInfo } from '@/lib/types';
-import { useRouter } from 'next/navigation';
 import { SaveButton } from '@/components/save-button';
 
 interface AnalysisGridCardProps {
@@ -22,8 +21,6 @@ export function AnalysisGridCard({
   isNew = false,
   onSavedChange,
 }: AnalysisGridCardProps) {
-  const router = useRouter();
-
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -32,6 +29,15 @@ export function AnalysisGridCard({
   const isAnalyzing = image.isAnalyzing ?? false;
   const title = image.analysis?.searchTerm ?? 'Untitled';
   const colors = image.analysis?.colors ?? [];
+
+  const handleOnClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    window.open(
+      `/analysis/${image.analysisId}`,
+      '_blank',
+      'noopener,noreferrer'
+    );
+  };
 
   return (
     <motion.div
@@ -46,7 +52,7 @@ export function AnalysisGridCard({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={() => router.push(`/analysis/${image.analysisId}`)}
+      onClick={handleOnClick}
     >
       <div className="bg-card scrollbar-hide relative overflow-hidden rounded-2xl shadow-sm transition-shadow duration-300 will-change-transform hover:shadow-xl">
         <div className="bg-muted relative aspect-3/4 w-full overflow-hidden will-change-transform">
