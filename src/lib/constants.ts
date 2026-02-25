@@ -1,11 +1,34 @@
+import { env } from '@/lib/env';
 import { ImageInfo } from '@/lib/types';
 
+const EXAMPLE_IMAGE_URL = `${env.SUPABASE_URL}/storage/v1/object/public/public-assets/static/example/example-analysis.png`;
+
+export const officialUser = {
+  id: env.OFFICIAL_USER_ID, // client wont see
+  user_metadata: {
+    username: 'inspolens.lab',
+    display_name: 'InspoLens Lab',
+  },
+  // not the same path as normal avatar url bc the official user id cannot be shown on client
+  avatar_url: `${env.SUPABASE_URL}/storage/v1/object/public/public-assets/static/example/avatar.png`,
+  avatar_color: 'oklch(70.5% 0.015 286.067)',
+  app_metadata: {},
+  aud: '',
+  created_at: '',
+  is_official: true,
+};
+
 export const exampleImage: ImageInfo = {
-  id: 'cmqlgj',
-  imageUrl:
-    'https://o7f2rjllxxdvs2xh.public.blob.vercel-storage.com/example.png',
-  proxyUrl:
-    '/api/image-proxy?url=https%3A%2F%2Fo7f2rjllxxdvs2xh.public.blob.vercel-storage.com%2Fexample.png',
+  id: '00000000-0000-0000-0000-000000000000',
+  creator: {
+    id: officialUser.id,
+    username: officialUser.user_metadata.username,
+    // display_name: officialUser.user_metadata.display_name,
+    avatar_color: officialUser.avatar_color,
+    avatar_url: officialUser.avatar_url,
+  },
+  imageUrl: EXAMPLE_IMAGE_URL,
+  proxyUrl: `/api/image-proxy?url=${encodeURIComponent(EXAMPLE_IMAGE_URL)}`,
   isAnalyzing: false,
   analysis: {
     description:
@@ -107,3 +130,6 @@ export const exampleImage: ImageInfo = {
     ],
   },
 };
+
+export const SHOW_TEASTER_LIMIT = 30;
+export const ITEMS_PER_PAGE = 20;

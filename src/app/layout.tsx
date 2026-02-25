@@ -1,7 +1,12 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import Footer from '@/app/_components/footer';
+import Footer from '@/components/layout/footer';
+import { Toaster } from '@/components/ui/sonner';
+import Header from '@/components/layout/header';
+import { AuthProvider } from '@/lib/context/auth-context';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { ModalProvider } from '@/components/providers/modal-provider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -16,14 +21,20 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'InspoLens',
   description:
-    'Unlock your visual story. Extract visual elements from your images, discover similar inspiration on Pinterest.',
+    'One image, many ideas. Turn visuals into keywords, colors, and directions you can explore.',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html lang="en">
       <head>
@@ -34,10 +45,17 @@ export default function RootLayout({
         ></script>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-linear-to-br from-gray-50 via-blue-50 to-purple-50`}
+        className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col bg-linear-to-br from-gray-50 via-blue-50 to-purple-50 antialiased`}
       >
-        {children}
-        <Footer />
+        <AuthProvider initialUser={user}>
+          <Header />
+          <main className="container mx-auto min-h-screen max-w-7xl px-6">
+            {children}
+          </main>
+          <Footer />
+          <Toaster />
+          <ModalProvider />
+        </AuthProvider>
       </body>
     </html>
   );

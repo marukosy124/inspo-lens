@@ -1,12 +1,16 @@
-import { useEffect } from 'react';
+import { useAuth } from '@/lib/context/auth-context';
+import { useUsageStore } from '@/stores';
 import {
-  useUsageStore,
   selectCount,
   selectRemaining,
   selectIsLimitReached,
 } from '@/stores/use-usage-store';
+import { useEffect } from 'react';
 
 export function useUsageLimit() {
+  const { user } = useAuth();
+  const isAuthenticated = !!user?.id;
+
   const count = useUsageStore(selectCount);
   const remaining = useUsageStore(selectRemaining);
   const isLimitReached = useUsageStore(selectIsLimitReached);
@@ -15,12 +19,20 @@ export function useUsageLimit() {
     (state) => state.checkAndResetIfNewDay
   );
 
-  // Check for new day on mount and periodically
   useEffect(() => {
     checkAndResetIfNewDay();
-    const interval = setInterval(checkAndResetIfNewDay, 60000); // Every minute
+    const interval = setInterval(checkAndResetIfNewDay, 60000);
     return () => clearInterval(interval);
   }, [checkAndResetIfNewDay]);
+
+  if (isAuthenticated) {
+    return {
+      count,
+      remaining: Infinity,
+      isLimitReached: false,
+      incrementUsage,
+    };
+  }
 
   return {
     count,

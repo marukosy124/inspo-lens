@@ -13,7 +13,7 @@ interface CustomTooltipProps {
   className?: string;
 }
 
-const CustomTooltip = ({
+export const CustomTooltip = ({
   children,
   label,
   side = 'top',
@@ -31,5 +31,3 @@ const CustomTooltip = ({
     </TooltipProvider>
   );
 };
-
-export default CustomTooltip;
