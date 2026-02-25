@@ -10,43 +10,41 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useModalStore } from '@/stores';
 
 export interface AuthGateModalProps
   extends React.ComponentPropsWithoutRef<'div'> {
   open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  onSignUp?: () => void;
-  onSignIn?: () => void;
   imageUrl?: string;
   title?: string;
   dialogContentProps?: React.ComponentProps<typeof DialogContent>;
   dialogHeaderProps?: React.ComponentProps<typeof DialogHeader>;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function AuthGateModal({
   open = false,
-  onOpenChange,
-  onSignUp,
-  onSignIn,
   imageUrl,
   title = 'Save this idea',
   dialogContentProps,
   dialogHeaderProps,
+  onOpenChange,
   className,
-  ...props
 }: AuthGateModalProps) {
+  const { open: openAuthModal } = useModalStore();
+
   const handleClose = () => {
     onOpenChange?.(false);
   };
 
   const handleSignUp = () => {
     handleClose();
-    onSignUp?.();
+    openAuthModal('auth', { initialMode: 'sign-up' });
   };
 
   const handleSignIn = () => {
     handleClose();
-    onSignIn?.();
+    openAuthModal('auth', { initialMode: 'sign-in' });
   };
 
   return (
@@ -55,10 +53,7 @@ export function AuthGateModal({
         className={cn('max-w-md overflow-hidden px-8 py-10', className)}
         {...dialogContentProps}
       >
-        <div
-          className="relative flex flex-col items-center text-center"
-          {...props}
-        >
+        <div className="relative flex flex-col items-center text-center">
           {/* Preview Image */}
           {imageUrl && (
             <div className="relative mb-6 h-24 w-24 overflow-hidden rounded-2xl shadow-lg ring-2 ring-stone-200/60">
