@@ -161,7 +161,10 @@ export function AnalysisDetailsView({
                     id="allKeywords"
                     copied={copied}
                     onCopy={() =>
-                      onCopy('allKeywords', analysis.keywords.join(', '))
+                      onCopy(
+                        'allKeywords',
+                        analysis.keywords.map(({ name }) => name).join(', ')
+                      )
                     }
                   />
                 </div>
