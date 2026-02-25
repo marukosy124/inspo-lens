@@ -280,24 +280,25 @@ export default function HomePage({ initialAnalyses = [] }: HomePageProps) {
             </div>
           )}
 
-          {/* End of content - Encouragement to create more */}
-          {!hasMore && analyses.length > 0 && (
-            <div className="flex flex-col items-center gap-6 py-8">
-              {/* Divider */}
-              <div className="flex w-full items-center gap-4">
-                <div className="h-px flex-1 bg-linear-to-r from-transparent via-stone-200 to-transparent" />
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-xs font-medium tracking-wider text-stone-400 uppercase">
-                    You`&apos;ve reached the end
-                  </span>
-                  <Button size="xs" variant="link" onClick={scrollToTop}>
-                    Upload images to explore more inspiration ↑
-                  </Button>
+          {/* Bottom banner: shows users they've reached the end of the list (only displayed if initialAnalyses >= ITEMS_PER_PAGE) */}
+          {!hasMore &&
+            analyses.length > 0 &&
+            initialAnalyses.length >= ITEMS_PER_PAGE && (
+              <div className="flex flex-col items-center gap-6 py-8">
+                <div className="flex w-full items-center gap-4">
+                  <div className="h-px flex-1 bg-linear-to-r from-transparent via-stone-200 to-transparent" />
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xs font-medium tracking-wider text-stone-400 uppercase">
+                      You`&apos;ve reached the end
+                    </span>
+                    <Button size="xs" variant="link" onClick={scrollToTop}>
+                      Upload images to explore more inspiration ↑
+                    </Button>
+                  </div>
+                  <div className="h-px flex-1 bg-linear-to-r from-transparent via-stone-200 to-transparent" />
                 </div>
-                <div className="h-px flex-1 bg-linear-to-r from-transparent via-stone-200 to-transparent" />
               </div>
-            </div>
-          )}
+            )}
         </section>
       )}
 
