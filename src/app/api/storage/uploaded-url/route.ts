@@ -21,13 +21,13 @@ export interface GetUploadedUrlResponse {
 export async function GET(
   request: NextRequest
 ): Promise<NextResponse<GetUploadedUrlResponse | ErrorResponse>> {
-  // Validate query params
   const searchParams = request.nextUrl.searchParams;
   const parseResult = querySchema.safeParse({
     path: searchParams.get('path'),
     bucket: searchParams.get('bucket'),
     public: searchParams.get('public'),
   });
+
   if (!parseResult.success) {
     return NextResponse.json(
       { error: parseResult.error.issues[0].message },
@@ -37,46 +37,50 @@ export async function GET(
 
   const { path, bucket, public: isPublicStr } = parseResult.data;
   const isPublic = isPublicStr === 'true';
+
   const supabaseAdmin = createClient(
     env.SUPABASE_URL!,
     env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // Get user ID (authenticated or fallback to official)
   const {
     data: { user },
   } = await supabaseAdmin.auth.getUser();
-  const userId = user?.id ?? env.OFFICIAL_USER_ID;
-  if (!userId) {
-    return NextResponse.json(
-      { error: 'Authentication required' },
-      { status: 401 }
-    );
+
+  const isGuest = !user;
+
+  let allowedPrefix: string;
+
+  if (isGuest) {
+    allowedPrefix = 'guest/';
+  } else {
+    allowedPrefix = `users/${user!.id}/`;
   }
-  if (!path.startsWith(`users/${userId}/`)) {
+
+  if (!path.startsWith(allowedPrefix)) {
     return NextResponse.json(
-      { error: 'Unauthorized access to this location' },
+      { error: 'Unauthorized access to this file location' },
       { status: 403 }
     );
   }
 
-  // Generate appropriate URL
   try {
     let url: string;
 
     if (isPublic) {
-      // Public URL (permanent)
+      // Permanent public URL
       const { data } = supabaseAdmin.storage.from(bucket).getPublicUrl(path);
-      if (!data.publicUrl) throw new Error('Failed to generate public URL');
+      if (!data.publicUrl) {
+        throw new Error('Failed to generate public URL');
+      }
       url = data.publicUrl;
     } else {
-      // Signed URL (temporary, 7 days)
       const { data, error } = await supabaseAdmin.storage
         .from(bucket)
-        .createSignedUrl(path, 60 * 60 * 24 * 7); // 7 days
+        .createSignedUrl(path, 60 * 60 * 24 * 7); // 604800 seconds = 7 days
 
       if (error || !data?.signedUrl) {
-        console.error('Signed URL error:', error);
+        console.error('Signed URL generation failed:', error);
         throw new Error('Failed to generate signed URL');
       }
       url = data.signedUrl;
@@ -90,7 +94,7 @@ export async function GET(
   } catch (err) {
     console.error('Error generating uploaded URL:', err);
     return NextResponse.json(
-      { error: 'Failed to retrieve URL' },
+      { error: 'Failed to retrieve file URL' },
       { status: 500 }
     );
   }

@@ -4,7 +4,6 @@ interface Env {
   SUPABASE_URL: string;
   SUPABASE_PUBLISHABLE_OR_ANON_KEY: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
-  OFFICIAL_USER_ID: string;
 }
 
 const env: Env = {
@@ -14,7 +13,6 @@ const env: Env = {
   SUPABASE_PUBLISHABLE_OR_ANON_KEY:
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY || '',
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-  OFFICIAL_USER_ID: process.env.OFFICIAL_USER_ID || '',
 };
 
 export { env };

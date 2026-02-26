@@ -20,12 +20,12 @@ export interface GetSignedUploadUrlResponse {
 export async function GET(
   request: NextRequest
 ): Promise<NextResponse<GetSignedUploadUrlResponse | ErrorResponse>> {
-  // Validate query params
   const searchParams = request.nextUrl.searchParams;
   const parseResult = querySchema.safeParse({
     filename: searchParams.get('filename'),
     public: searchParams.get('public'),
   });
+
   if (!parseResult.success) {
     return NextResponse.json(
       { error: parseResult.error.issues[0].message },
@@ -35,37 +35,42 @@ export async function GET(
 
   const { filename, public: isPublicStr } = parseResult.data;
   const isPublic = isPublicStr === 'true';
+
   const supabaseAdmin = createClient(
     env.SUPABASE_URL!,
     env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // Get user ID (authenticated or fallback to official)
   const {
     data: { user },
   } = await supabaseAdmin.auth.getUser();
-  const userId = user?.id ?? env.OFFICIAL_USER_ID;
-  if (!userId) {
-    return NextResponse.json(
-      { error: 'Authentication required' },
-      { status: 401 }
-    );
+
+  const isGuest = !user;
+
+  let userFolder: string;
+
+  if (isGuest) {
+    userFolder = 'guest';
+  } else {
+    userFolder = `users/${user.id}`;
   }
 
-  // Generate safe, unique path
+  // Generate safe, unique filename
   const ext = filename.split('.').pop() || 'png';
   const baseName = filename.replace(/\.[^/.]+$/, '') || 'image';
   const timestamp = format(new Date(), 'yyyyMMddHHmmss');
   const safeFilename = `${baseName}_${timestamp}.${ext}`;
 
   const bucket = isPublic ? 'public-assets' : 'private-assets';
-  const path = `users/${userId}/${safeFilename}`;
+  const path = `${userFolder}/${safeFilename}`;
 
   // Create signed upload URL
   try {
     const { data, error } = await supabaseAdmin.storage
       .from(bucket)
-      .createSignedUploadUrl(path, { upsert: false });
+      .createSignedUploadUrl(path, {
+        upsert: false,
+      });
 
     if (error) {
       console.error('Supabase signed upload error:', error);

@@ -308,7 +308,7 @@ const ImageUploader = ({
               <Upload
                 className={cn(
                   'h-9 w-9',
-                  isDragging ? 'text-white' : 'text-blue-600'
+                  isDragging ? 'text-blue-400' : 'text-blue-600'
                 )}
                 strokeWidth={2.5}
               />

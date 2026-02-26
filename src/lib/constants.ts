@@ -4,14 +4,13 @@ import { ImageInfo } from '@/lib/types';
 const EXAMPLE_IMAGE_URL = `${env.SUPABASE_URL}/storage/v1/object/public/public-assets/static/example/example-analysis.png`;
 
 export const officialUser = {
-  id: env.OFFICIAL_USER_ID, // client wont see
+  id: null,
   user_metadata: {
-    username: 'inspolens.lab',
-    display_name: 'InspoLens Lab',
+    username: 'guest_creator',
+    display_name: 'Guest Creator',
   },
-  // not the same path as normal avatar url bc the official user id cannot be shown on client
   avatar_url: `${env.SUPABASE_URL}/storage/v1/object/public/public-assets/static/example/avatar.png`,
-  avatar_color: 'oklch(70.5% 0.015 286.067)',
+  avatar_color: '#6366f1',
   app_metadata: {},
   aud: '',
   created_at: '',
