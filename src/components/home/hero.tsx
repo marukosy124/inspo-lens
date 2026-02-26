@@ -45,7 +45,7 @@ export default function Hero({
       <div className="flex h-full items-center">
         <div className="w-full">
           {isLimitReached ? (
-            <div className="mx-auto flex w-full max-w-2xl items-start gap-4 rounded-2xl border border-red-200/60 bg-gradient-to-br from-red-50 to-orange-50/30 p-6 shadow-lg shadow-red-500/5 backdrop-blur-sm">
+            <div className="mx-auto flex w-full max-w-2xl items-start gap-4 rounded-2xl border border-red-200/60 bg-linear-to-br from-red-50 to-orange-50/30 p-6 shadow-lg shadow-red-500/5 backdrop-blur-sm">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100">
                 <AlertCircle className="h-5 w-5 text-red-600" strokeWidth={2} />
               </div>
@@ -55,7 +55,7 @@ export default function Hero({
                 </h3>
                 <p className="text-sm leading-relaxed text-red-700/80">
                   You&apos;ve analyzed 10 images today. Your limit resets
-                  tomorrow—come back for more inspiration!
+                  tomorrow — come back for more inspiration!
                 </p>
               </div>
             </div>

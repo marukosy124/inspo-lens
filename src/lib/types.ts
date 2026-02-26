@@ -14,7 +14,7 @@ export interface ImageAnalysis {
 }
 
 export interface AnalysisCreator {
-  id: string;
+  id: string | null;
   username: string | null;
   // display_name: string | null;
   avatar_url: string | null;
@@ -41,8 +41,9 @@ export interface UserProfile {
   avatar_color?: string;
 }
 
-export type CompleteUser = UserProfile &
-  User & {
+export type CompleteUser = Omit<User, 'id'> &
+  UserProfile & {
+    id: string | null;
     is_official?: boolean;
   };
 

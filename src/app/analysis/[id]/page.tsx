@@ -1,4 +1,5 @@
 import AnalysisPage from '@/components/analysis/analysis-page';
+import { ITEMS_PER_PAGE } from '@/lib/constants';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Analysis, ImageInfo } from '@/lib/types';
 import { analysisToImageInfo, getAnalysisImageUrl } from '@/lib/utils';
@@ -37,7 +38,7 @@ export default async function AnalysisDetailPage({ params }: PageProps) {
       'get_analyses_with_save_status',
       {
         p_user_id: user.id,
-        p_limit: 20,
+        p_limit: ITEMS_PER_PAGE,
         p_offset: 0,
       }
     );
@@ -52,7 +53,7 @@ export default async function AnalysisDetailPage({ params }: PageProps) {
 
     // Related: use public list (no personalization)
     const { data: related } = await supabase.rpc('get_public_analyses', {
-      p_limit: 20,
+      p_limit: ITEMS_PER_PAGE,
       p_offset: 0,
     });
     relatedData = related ?? [];
