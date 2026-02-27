@@ -5,67 +5,137 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
   ReactNode,
 } from 'react';
 import { supabaseClient } from '@/lib/supabase/client';
 import { CompleteUser, UserProfile } from '@/lib/types';
 import { officialUser } from '@/lib/constants';
+import { User } from '@supabase/supabase-js';
 
 type AuthContextType = {
   user: CompleteUser | null;
   isLoading: boolean;
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({
-  children,
-  initialUser,
-}: {
+interface AuthProviderProps {
   children: ReactNode;
-  initialUser: CompleteUser | null;
-}) {
+  initialUser: CompleteUser | null; // SSR-provided CompleteUser with profile
+}
+
+export function AuthProvider({ children, initialUser }: AuthProviderProps) {
   const [user, setUser] = useState<CompleteUser | null>(initialUser);
-  const [isLoading, setIsLoading] = useState(
-    !initialUser && initialUser !== null
-  ); // only loading if we don't have initial data
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchProfile = useCallback(async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabaseClient
+        .from('profiles')
+        .select('username, avatar_url, avatar_color')
+        .eq('id', userId)
+        .single<UserProfile>();
+
+      if (!error && profile) return profile;
+    } catch {}
+    return null;
+  }, []);
+
+  const handleSessionChange = useCallback(
+    async (event: string, sessionUser: User | null) => {
+      console.log('[Auth] Event:', event);
+
+      setTimeout(async () => {
+        // Use official when there is no session
+        if (!sessionUser) {
+          console.log('[Auth] No session');
+          setUser(officialUser);
+          setIsLoading(false);
+          return;
+        }
+
+        // Skip unnecessary profile refetch on same-user event
+        if (user?.id === sessionUser.id) {
+          console.log('[Auth] Skip refetch');
+          setIsLoading(false);
+          return;
+        }
+
+        // Use SSR initialUser if hydration matches and initialUser has username
+        if (
+          event === 'INITIAL_SESSION' &&
+          initialUser?.id === sessionUser.id &&
+          initialUser?.username
+        ) {
+          console.log('[Auth] Initial session');
+          setUser(initialUser);
+          setIsLoading(false);
+          return;
+        }
+
+        // Otherwise fetch fresh profile
+        const profile = await fetchProfile(sessionUser.id);
+        console.log('[Auth] Fetched');
+
+        setUser(
+          profile
+            ? { ...sessionUser, ...profile, is_official: false }
+            : {
+                ...sessionUser,
+                username: null,
+                avatar_url: null,
+                avatar_color: undefined,
+                is_official: false,
+              }
+        );
+
+        setIsLoading(false);
+      }, 0);
+    },
+    [fetchProfile, initialUser, user?.id]
+  );
 
   useEffect(() => {
-    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange(async (_, session) => {
-      let user: CompleteUser | null = null;
-      if (session?.user) {
-        const currentUser = session.user;
-
-        // Get the profile (single row)
-        const { data: profile, error: profileError } = await supabaseClient
-          .from('profiles')
-          .select('username, avatar_url, avatar_color')
-          .eq('id', currentUser.id)
-          .single<UserProfile>();
-
-        if (profileError) {
-          console.error('Profile fetch error:', profileError);
-        }
-
-        if (profile && currentUser) {
-          user = { ...currentUser, ...profile, is_official: false };
-        }
-      } else {
-        // set official user as user otherwise
-        user = officialUser;
-      }
-      setUser(user);
-      setIsLoading(false);
+    } = supabaseClient.auth.onAuthStateChange((event, session) => {
+      handleSessionChange(event, session?.user ?? null);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [handleSessionChange]);
+
+  // refetch user profile when tab changes
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible' && user?.id) {
+        console.log('[Auth] Refetched');
+        const profile = await fetchProfile(user.id);
+        if (profile) {
+          setUser((prev) => (prev ? { ...prev, ...profile } : prev));
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user?.id, fetchProfile]);
+
+  const signOut = useCallback(async () => {
+    await supabaseClient.auth.signOut();
+    setUser(officialUser);
+    setIsLoading(false);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading }}>
+    <AuthContext.Provider value={{ user, isLoading, signOut }}>
       {children}
     </AuthContext.Provider>
   );
@@ -73,8 +143,6 @@ export function AuthProvider({
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 }
