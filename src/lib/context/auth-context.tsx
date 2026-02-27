@@ -56,6 +56,13 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
           return;
         }
 
+        // Skip unnecessary profile refetch on same-user event
+        if (user?.id === sessionUser.id) {
+          console.log('[Auth] Skip refetch');
+          setIsLoading(false);
+          return;
+        }
+
         // Use SSR initialUser if hydration matches and initialUser has username
         if (
           event === 'INITIAL_SESSION' &&
@@ -70,7 +77,7 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
 
         // Otherwise fetch fresh profile
         const profile = await fetchProfile(sessionUser.id);
-        console.log('[Auth] Update user');
+        console.log('[Auth] Fetched');
 
         setUser(
           profile
@@ -87,14 +94,13 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
         setIsLoading(false);
       }, 0);
     },
-    [fetchProfile, initialUser]
+    [fetchProfile, initialUser, user?.id]
   );
 
   useEffect(() => {
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((event, session) => {
-      console.log('[Auth] onAuthStateChange');
       handleSessionChange(event, session?.user ?? null);
     });
 
@@ -102,6 +108,25 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
       subscription.unsubscribe();
     };
   }, [handleSessionChange]);
+
+  // refetch user profile when tab changes
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible' && user?.id) {
+        console.log('[Auth] Refetched');
+        const profile = await fetchProfile(user.id);
+        if (profile) {
+          setUser((prev) => (prev ? { ...prev, ...profile } : prev));
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user?.id, fetchProfile]);
 
   const signOut = useCallback(async () => {
     await supabaseClient.auth.signOut();
