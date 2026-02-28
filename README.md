@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# InspoLens
 
-## Getting Started
+InspoLens is an AI-powered visual analysis tool that helps creatives turn images into structured inspiration.
 
-First, run the development server:
+Instead of endlessly scrolling for ideas, users can upload an image and instantly extract:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- 🎨 Color palettes
+- 🔎 Aesthetic keywords
+- 📝 Structured visual descriptions
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The goal is to make creative research more intentional, searchable, and reusable.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+👉 [Live Demo](https://inspo-lens.vercel.app) | [Project Overview](https://www.soniayeung.com/project/inspolens)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## What It Does
 
-## Learn More
+- Upload an image for AI analysis
+- Extract dominant colors and semantic tags
+- Generate structured aesthetic descriptions
+- Save and manage analyses under user accounts
+- Retrieve analyses with pagination and filtering
+- Support both guest and authenticated modes
 
-To learn more about Next.js, take a look at the following resources:
+## Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Frontend**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
 
-## Deploy on Vercel
+**Backend / Infrastructure**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Supabase (Auth, PostgreSQL, Storage)
+- Row Level Security (RLS)
+- Custom PostgreSQL RPC functions
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**AI**
+
+- OpenAI API
+
+**Deployment**
+
+- Vercel
+
+## Engineering Highlights
+
+- Auth-aware session handling (hydration-safe)
+- Database-level computation of save state
+- Server-side pagination & filtering
+- Structured AI output pipeline with normalized storage
+- Access control via RLS policies
+
+## Future Plans
+
+- [ ] Improve onboarding and landing page clarity
+- [ ] Implement search functionality
+- [ ] Introduce collections to organize analyses
+- [ ] Integrate AI image generation based on extracted metadata
+- [ ] Develop a user dashboard
+
+…and continue refining the product as the creative workflow becomes more structured and interconnected.
+
+## Current Status
+
+A functional public MVP with image analysis, user authentication, and saved analyses.
+
+The core workflow (_upload → analyze → explore → save_) is complete.
+
+Current focus: expanding creative workflows with search, collections, and deeper exploration of analyses.
