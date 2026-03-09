@@ -7,6 +7,7 @@ import Image from 'next/image';
 
 import { ImageInfo } from '@/lib/types';
 import { SaveButton } from '@/components/save-button';
+import { useRouter } from 'next/navigation';
 
 interface AnalysisGridCardProps {
   image: ImageInfo;
@@ -21,6 +22,7 @@ export function AnalysisGridCard({
   isNew = false,
   onSavedChange,
 }: AnalysisGridCardProps) {
+  const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -32,11 +34,7 @@ export function AnalysisGridCard({
 
   const handleOnClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
-    window.open(
-      `/analysis/${image.analysisId}`,
-      '_blank',
-      'noopener,noreferrer'
-    );
+    router.push(`/analysis/${image.analysisId}`);
   };
 
   return (
