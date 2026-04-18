@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 import { ImageInfo } from '@/lib/types';
-import { SaveButton } from '@/components/save-button';
+import { SaveButton } from '@/components/save/save-button';
 import { useRouter } from 'next/navigation';
 
 interface AnalysisGridCardProps {
@@ -25,12 +25,17 @@ export function AnalysisGridCard({
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  // FIX #2: track whether the collection picker is open so the card stays in hover state
+  const [isCollectionPickerOpen, setIsCollectionPickerOpen] = useState(false);
 
   const imageUrl = image.imageUrl ?? '';
   const analysisId = image.analysisId ?? image.id;
   const isAnalyzing = image.isAnalyzing ?? false;
   const title = image.analysis?.searchTerm ?? 'Untitled';
   const colors = image.analysis?.colors ?? [];
+
+  // Card is "active" (shows hover UI) when the mouse is over it OR the popover is open
+  const isActive = isHovered || isCollectionPickerOpen;
 
   const handleOnClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -92,7 +97,7 @@ export function AnalysisGridCard({
               <motion.div
                 className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent"
                 initial={{ opacity: 0 }}
-                animate={{ opacity: isHovered ? 1 : 0 }}
+                animate={{ opacity: isActive ? 1 : 0 }}
                 transition={{ duration: 0.25 }}
               />
 
@@ -104,8 +109,9 @@ export function AnalysisGridCard({
                   onSavedChange={(newSaved) =>
                     onSavedChange?.(analysisId, newSaved)
                   }
+                  onCollectionPickerOpenChange={setIsCollectionPickerOpen}
                   variant="card"
-                  isHovered={isHovered}
+                  isHovered={isActive}
                   stopPropagation
                 />
               )}
@@ -115,8 +121,8 @@ export function AnalysisGridCard({
                 className="absolute inset-x-0 bottom-0 p-4"
                 initial={{ opacity: 0, y: 12 }}
                 animate={{
-                  opacity: isHovered ? 1 : 0,
-                  y: isHovered ? 0 : 12,
+                  opacity: isActive ? 1 : 0,
+                  y: isActive ? 0 : 12,
                 }}
                 transition={{ duration: 0.25 }}
               >

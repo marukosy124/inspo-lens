@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AnalysisCreator } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 interface UserAvatarProps {
   user: AnalysisCreator;

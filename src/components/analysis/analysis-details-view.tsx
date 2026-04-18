@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Share2, Check, ExternalLink, Download, Copy } from 'lucide-react';
 import { ColorPalette } from '@/components/analysis/color-palette';
 import { CopyButton } from '@/components/copy-button';
-import { SaveButton } from '@/components/save-button';
+import { SaveButton } from '@/components/save/save-button';
 import { Button } from '@/components/ui/button';
 import { Analysis } from '@/lib/types';
 import Image from 'next/image';

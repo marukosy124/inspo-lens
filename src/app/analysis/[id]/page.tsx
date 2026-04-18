@@ -2,7 +2,7 @@ import AnalysisPage from '@/components/analysis/analysis-page';
 import { ITEMS_PER_PAGE } from '@/lib/constants';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Analysis, ImageInfo } from '@/lib/types';
-import { analysisToImageInfo, getAnalysisImageUrl } from '@/lib/utils';
+import { analysisToImageInfo, getAnalysisImageUrl } from '@/lib/utils/analysis';
 import { notFound } from 'next/navigation';
 
 type PageProps = {

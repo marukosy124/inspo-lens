@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { analysisToImageInfo } from '@/lib/utils';
+import { analysisToImageInfo } from '@/lib/utils/analysis';
 import { ImageInfo } from '@/lib/types';
 import { redirect } from 'next/navigation';
 import MyAnalysesPage from '@/components/analysis/my-analyses-page';

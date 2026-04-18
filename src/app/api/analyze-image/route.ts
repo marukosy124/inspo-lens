@@ -2,9 +2,9 @@ import { openai } from '@/lib/openai';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { zodTextFormat } from 'openai/helpers/zod';
-import { capitalize } from '@/lib/utils';
 import { ExtractedColor } from '@/lib/color-extractor';
 import { env } from '@/lib/env';
+import { capitalize } from '@/lib/utils/common';
 
 const prompt = `
 Given an image and its colors, analyze its visual content and return the following:

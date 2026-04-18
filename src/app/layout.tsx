@@ -9,6 +9,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { ModalProvider } from '@/components/providers/modal-provider';
 import { CompleteUser } from '@/lib/types';
 import { officialUser } from '@/lib/constants';
+import { ReactQueryClientProvider } from '@/components/providers/react-query-provider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -72,15 +73,17 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col bg-linear-to-br from-gray-50 via-blue-50 to-purple-50 antialiased`}
       >
-        <AuthProvider initialUser={completeUser}>
-          <Header />
-          <main className="container mx-auto min-h-screen max-w-7xl px-6">
-            {children}
-          </main>
-          <Footer />
-          <Toaster />
-          <ModalProvider />
-        </AuthProvider>
+        <ReactQueryClientProvider>
+          <AuthProvider initialUser={completeUser}>
+            <Header />
+            <main className="container mx-auto min-h-screen max-w-7xl px-6">
+              {children}
+            </main>
+            <Footer />
+            <Toaster />
+            <ModalProvider />
+          </AuthProvider>
+        </ReactQueryClientProvider>
       </body>
     </html>
   );

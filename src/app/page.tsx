@@ -1,6 +1,6 @@
 import HomePage from '@/components/home/home-page';
 import { Analysis, ImageInfo } from '@/lib/types';
-import { analysisToImageInfo } from '@/lib/utils';
+import { analysisToImageInfo } from '@/lib/utils/analysis';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { ITEMS_PER_PAGE } from '@/lib/constants';
 

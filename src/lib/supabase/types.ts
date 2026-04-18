@@ -7,30 +7,10 @@ export type Json =
   | Json[];
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never;
-    };
-    Views: {
-      [_ in never]: never;
-    };
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json;
-          operationName?: string;
-          query?: string;
-          variables?: Json;
-        };
-        Returns: Json;
-      };
-    };
-    Enums: {
-      [_ in never]: never;
-    };
-    CompositeTypes: {
-      [_ in never]: never;
-    };
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: '14.1';
   };
   public: {
     Tables: {
@@ -42,6 +22,7 @@ export type Database = {
           id: string;
           image_bucket: string;
           image_path: string;
+          is_guest_analysis: boolean;
           public: boolean | null;
           search_term: string;
           updated_at: string | null;
@@ -53,6 +34,7 @@ export type Database = {
           id?: string;
           image_bucket: string;
           image_path: string;
+          is_guest_analysis?: boolean;
           public?: boolean | null;
           search_term: string;
           updated_at?: string | null;
@@ -64,6 +46,7 @@ export type Database = {
           id?: string;
           image_bucket?: string;
           image_path?: string;
+          is_guest_analysis?: boolean;
           public?: boolean | null;
           search_term?: string;
           updated_at?: string | null;
@@ -225,15 +208,92 @@ export type Database = {
           },
         ];
       };
+      collections: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          creator_id: string;
+          public: boolean | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          description?: string | null;
+          creator_id: string;
+          public?: boolean | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          description?: string | null;
+          creator_id?: string;
+          public?: boolean | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
+      collection_analyses: {
+        Row: {
+          collection_id: string;
+          analysis_id: string;
+          created_at: string | null;
+        };
+        Insert: {
+          collection_id: string;
+          analysis_id: string;
+          created_at?: string | null;
+        };
+        Update: {
+          collection_id?: string;
+          analysis_id?: string;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'collection_analyses_collection_id_fkey';
+            columns: ['collection_id'];
+            isOneToOne: false;
+            referencedRelation: 'collections';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'collection_analyses_analysis_id_fkey';
+            columns: ['analysis_id'];
+            isOneToOne: false;
+            referencedRelation: 'analyses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
-      create_analysis_with_relations: {
+      create_guest_analysis: {
         Args: {
           p_colors: Json;
-          p_creator_id: string;
+          p_description: string;
+          p_image_bucket: string;
+          p_image_path: string;
+          p_keywords: string[];
+          p_public: boolean;
+          p_search_term: string;
+        };
+        Returns: string;
+      };
+      create_user_analysis: {
+        Args: {
+          p_colors: Json;
           p_description: string;
           p_image_bucket: string;
           p_image_path: string;
@@ -245,33 +305,79 @@ export type Database = {
       };
       get_analyses_with_save_status: {
         Args: {
+          p_creator_id?: string;
+          p_include_own_private?: boolean;
           p_limit?: number;
           p_offset?: number;
+          p_only_guest?: boolean;
+          p_only_saved?: boolean;
           p_order_by?: string;
           p_order_direction?: string;
           p_user_id?: string;
         };
-        Returns: {
-          colors: Json[];
-          created_at: string;
-          creator: Json;
-          description: string;
-          id: string;
-          image_bucket: string;
-          image_path: string;
-          is_saved: boolean;
-          keywords: Json[];
-          public: boolean;
-          search_term: string;
-          updated_at: string;
-        }[];
+        Returns: Database['public']['CompositeTypes']['analysis_with_save_status'][];
+        SetofOptions: {
+          from: '*';
+          to: 'analysis_with_save_status';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      get_analysis_by_id_with_save_status: {
+        Args: { p_analysis_id: string; p_user_id?: string };
+        Returns: Database['public']['CompositeTypes']['analysis_with_save_status'];
+        SetofOptions: {
+          from: '*';
+          to: 'analysis_with_save_status';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      get_public_analyses: {
+        Args: {
+          p_creator_id?: string;
+          p_limit?: number;
+          p_offset?: number;
+          p_order_by?: string;
+          p_order_direction?: string;
+        };
+        Returns: Database['public']['CompositeTypes']['analysis_with_save_status'][];
+        SetofOptions: {
+          from: '*';
+          to: 'analysis_with_save_status';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      get_public_analysis_by_id: {
+        Args: { p_analysis_id: string };
+        Returns: Database['public']['CompositeTypes']['analysis_with_save_status'];
+        SetofOptions: {
+          from: '*';
+          to: 'analysis_with_save_status';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
     };
     Enums: {
       [_ in never]: never;
     };
     CompositeTypes: {
-      [_ in never]: never;
+      analysis_with_save_status: {
+        id: string | null;
+        creator: Json | null;
+        search_term: string | null;
+        description: string | null;
+        public: boolean | null;
+        image_path: string | null;
+        image_bucket: string | null;
+        created_at: string | null;
+        updated_at: string | null;
+        colors: Json[] | null;
+        keywords: Json[] | null;
+        is_saved: boolean | null;
+      };
     };
   };
 };
@@ -397,9 +503,6 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

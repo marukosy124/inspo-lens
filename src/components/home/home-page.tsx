@@ -14,7 +14,7 @@ import AnalysisGrid from '@/components/analysis/analysis-grid';
 import { ITEMS_PER_PAGE, SHOW_TEASTER_LIMIT } from '@/lib/constants';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
-import { analysisToImageInfo } from '@/lib/utils';
+import { analysisToImageInfo } from '@/lib/utils/analysis';
 import { Analysis } from '@/lib/types';
 import { supabaseClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
