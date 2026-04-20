@@ -6,6 +6,10 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* Title color for headings */
+  --color-title: oklch(0.35 0.02 20);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -51,6 +55,10 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
+
+  /* Title color - warm dark gray (better than plain stone-600) */
+  --title: oklch(0.35 0.02 20);
+
   --primary: oklch(62.3% 0.214 259.815);
   --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(62.7% 0.265 303.9);
@@ -86,9 +94,12 @@
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
 
-  /* BLUE PRIMARY (dark mode) – a lighter blue that stays readable on dark backgrounds */
-  --primary: oklch(0.7 0.22 260); /* bright blue */
-  --primary-foreground: oklch(0.15 0 0); /* dark text for contrast */
+  /* Title color in dark mode - light warm gray */
+  --title: oklch(0.92 0.01 30);
+
+  /* BLUE PRIMARY (dark mode) */
+  --primary: oklch(0.7 0.22 260);
+  --primary-foreground: oklch(0.15 0 0);
 
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -119,7 +130,22 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Default title colors for all headings */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--title);
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1,
+      'tnum' 1;
   }
 }

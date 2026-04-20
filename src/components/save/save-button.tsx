@@ -176,10 +176,7 @@ export function SaveButton({
       <div className="flex h-full w-9 items-center justify-center">{icon}</div>
 
       <div
-        className={cn(
-          'border-border/60 text-muted-foreground group-hover:text-foreground flex h-full w-8 items-center justify-center border-l transition-colors',
-          optimisticSaved && 'text-primary'
-        )}
+        className="border-border/60 flex h-full w-8 items-center justify-center border-l"
         onClick={(e) => {
           e.stopPropagation();
           if (!user?.id) {

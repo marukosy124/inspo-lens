@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  ArrowRight,
   Bookmark,
   BookmarkIcon,
   LayoutGrid,
   Plus,
+  ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '@/lib/context/auth-context';
 import { ImageInfo } from '@/lib/types';
@@ -17,11 +17,9 @@ import AnalysisGrid from '@/components/analysis/analysis-grid';
 import { motion } from 'motion/react';
 import type { CollectionListItem } from '@/lib/utils/collection';
 import { CollectionCard } from '@/components/save/collection-card';
-import { CreateCollectionDialog } from '@/components/save/create-collection-dialog';
 import { EditCollectionDialog } from '@/components/save/edit-collection-dialog';
-import { cn } from '@/lib/utils/common';
-
-type TabId = 'saved' | 'collections';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCollectionStore, useModalStore } from '@/stores';
 
 interface SavedPageProps {
   savedAnalyses: ImageInfo[];
@@ -33,23 +31,24 @@ export default function SavedPage({
   initialCollections,
 }: SavedPageProps) {
   const { user, isLoading } = useAuth();
+  const { open: openCollectionModal } = useModalStore();
+  const { collections, addCollection, setCollections } = useCollectionStore();
   const router = useRouter();
+
   const [savedAnalyses, setSavedAnalyses] =
     useState<ImageInfo[]>(initialSavedAnalyses);
-  const [tab, setTab] = useState<TabId>('saved');
-  const [collections, setCollections] =
-    useState<CollectionListItem[]>(initialCollections);
-  const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<CollectionListItem | null>(null);
   const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
-    setSavedAnalyses(initialSavedAnalyses);
-  }, [initialSavedAnalyses]);
+    if (initialCollections.length > 0) {
+      setCollections(initialCollections);
+    }
+  }, [initialCollections, setCollections]);
 
   useEffect(() => {
-    setCollections(initialCollections);
-  }, [initialCollections]);
+    setSavedAnalyses(initialSavedAnalyses);
+  }, [initialSavedAnalyses]);
 
   const handleSavedChange = (analysisId: string, newSaved: boolean) => {
     setSavedAnalyses((prev) => {
@@ -58,20 +57,18 @@ export default function SavedPage({
           (item) => (item.analysisId ?? item.id) !== analysisId
         );
       }
-
       return prev.map((item) =>
         (item.analysisId ?? item.id) === analysisId
           ? { ...item, isSaved: true }
           : item
       );
     });
-    // Toasts are shown by SaveButton; only update local list here.
   };
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="border-primary h-12 w-12 animate-spin rounded-full border-b-2"></div>
+        <div className="border-primary h-12 w-12 animate-spin rounded-full border-b-2" />
       </div>
     );
   }
@@ -127,65 +124,61 @@ export default function SavedPage({
     );
   }
 
+  const handleCreate = () => {
+    openCollectionModal('create-collection', {
+      onCreated: (newCollection: CollectionListItem) => {
+        console.log({ newCollection });
+        addCollection(newCollection);
+      },
+    });
+  };
+
   return (
     <div className="py-6">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="space-y-8"
+        className="space-y-6"
       >
+        {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 rounded-md p-2">
-              <BookmarkIcon className="text-primary h-5 w-5" />
-            </div>
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              Library
-            </h1>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <div
-              className="bg-muted/60 inline-flex rounded-lg p-1"
-              role="tablist"
-              aria-label="Library sections"
-            >
-              <button
-                type="button"
-                role="tab"
-                aria-selected={tab === 'saved'}
-                className={cn(
-                  'rounded-md px-4 py-2 text-sm font-medium transition-colors',
-                  tab === 'saved'
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-                onClick={() => setTab('saved')}
-              >
+          <div className="flex w-full items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 rounded-md p-2">
+                <BookmarkIcon className="text-primary h-5 w-5" />
+              </div>
+              <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
                 Saved
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={tab === 'collections'}
-                className={cn(
-                  'inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium transition-colors',
-                  tab === 'collections'
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-                onClick={() => setTab('collections')}
-              >
-                <LayoutGrid className="size-4" />
-                Collections
-              </button>
+              </h1>
             </div>
+            <Button
+              type="button"
+              size="sm"
+              className="gap-1.5"
+              onClick={handleCreate}
+            >
+              <Plus className="size-4" />
+              Create collection
+            </Button>
           </div>
         </div>
 
-        {tab === 'saved' && (
-          <>
-            <div className="text-muted-foreground flex justify-end text-sm">
+        <Tabs defaultValue="saved" className="w-full">
+          <TabsList className="bg-muted/60 inline-flex">
+            <TabsTrigger value="saved" className="px-6">
+              All Saved
+            </TabsTrigger>
+            <TabsTrigger
+              value="collections"
+              className="inline-flex items-center gap-2 px-6"
+            >
+              <LayoutGrid className="size-4" />
+              Collections
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="saved">
+            <div className="text-muted-foreground mb-4 flex justify-end text-sm">
               {savedAnalyses.length} items
             </div>
 
@@ -202,17 +195,14 @@ export default function SavedPage({
                     strokeWidth={1.8}
                   />
                 </div>
-
                 <h2 className="mb-4 text-2xl font-semibold">
                   No saved analyses yet
                 </h2>
-
                 <p className="text-muted-foreground mx-auto mb-8 max-w-md text-base">
                   Save insights to build your visual reference library.
                 </p>
-
                 <Button size="lg" onClick={() => router.push('/')}>
-                  Explore Now <ArrowRight />
+                  Explore Now <ArrowRight className="ml-2" />
                 </Button>
               </motion.div>
             ) : (
@@ -221,23 +211,9 @@ export default function SavedPage({
                 onSavedChange={handleSavedChange}
               />
             )}
-          </>
-        )}
+          </TabsContent>
 
-        {tab === 'collections' && (
-          <>
-            <div className="flex items-center justify-end">
-              <Button
-                type="button"
-                size="sm"
-                className="gap-1.5"
-                onClick={() => setCreateOpen(true)}
-              >
-                <Plus className="size-4" />
-                Create collection
-              </Button>
-            </div>
-
+          <TabsContent value="collections" className="mt-6">
             {collections.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -256,7 +232,7 @@ export default function SavedPage({
                 <p className="text-muted-foreground mx-auto mb-8 max-w-md text-base">
                   Group saved analyses into boards. Create one to get started.
                 </p>
-                <Button size="lg" onClick={() => setCreateOpen(true)}>
+                <Button size="lg" onClick={handleCreate}>
                   <Plus className="size-4" />
                   Create collection
                 </Button>
@@ -275,17 +251,9 @@ export default function SavedPage({
                 ))}
               </div>
             )}
-          </>
-        )}
+          </TabsContent>
+        </Tabs>
       </motion.div>
-
-      <CreateCollectionDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        onCreated={(c) => {
-          setCollections((prev) => [c, ...prev.filter((x) => x.id !== c.id)]);
-        }}
-      />
 
       <EditCollectionDialog
         collection={editTarget}
@@ -294,11 +262,12 @@ export default function SavedPage({
           setEditOpen(open);
           if (!open) setEditTarget(null);
         }}
-        onUpdated={(c) => {
-          setCollections((prev) => prev.map((x) => (x.id === c.id ? c : x)));
+        onUpdated={() => {
+          // TO-FIX
+          // setCollections((prev) => prev.map((x: CollectionListItem) => (x.id === c.id ? c : x)));
         }}
-        onDeleted={(id) => {
-          setCollections((prev) => prev.filter((x) => x.id !== id));
+        onDeleted={() => {
+          // setCollections((prev) => prev.filter((x) => x.id !== id));
         }}
       />
     </div>

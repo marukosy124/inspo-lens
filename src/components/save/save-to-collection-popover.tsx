@@ -14,7 +14,6 @@ import {
   PopoverContent,
 } from '@/components/ui/popover';
 
-import { CreateCollectionDialog } from '@/components/save/create-collection-dialog';
 import { CollectionListItem } from '@/lib/utils/collection';
 import { cn } from '@/lib/utils/common';
 
@@ -22,6 +21,7 @@ import { getCollections } from '@/queries/collection';
 import { supabaseClient } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/context/auth-context';
 import { saveAnalysis } from '@/actions/analysis';
+import { useCollectionStore, useModalStore } from '@/stores';
 
 const COLLECTIONS_QUERY_KEY = (analysisId: string) => [
   'collections-for-analysis',
@@ -45,9 +45,10 @@ export function SaveToCollectionPopover({
 }: SaveToCollectionPopoverProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { open: openCollectionModal } = useModalStore();
+  const { addCollection } = useCollectionStore();
 
   const [query, setQuery] = useState('');
-  const [createOpen, setCreateOpen] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   // Fetch collections
@@ -142,6 +143,18 @@ export function SaveToCollectionPopover({
   const toggleCollection = (collection: CollectionListItem) => {
     if (updatingId) return;
     toggleMutation.mutate(collection);
+  };
+
+  const handleCreate = () => {
+    openCollectionModal('create-collection', {
+      analysisIdToAdd: analysisId,
+      onCreated: (newCollection: CollectionListItem) => {
+        queryClient.invalidateQueries({
+          queryKey: COLLECTIONS_QUERY_KEY(analysisId),
+        });
+        addCollection(newCollection);
+      },
+    });
   };
 
   return (
@@ -247,7 +260,7 @@ export function SaveToCollectionPopover({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setCreateOpen(true);
+                  handleCreate();
                 }}
               >
                 + Create new collection
@@ -256,18 +269,6 @@ export function SaveToCollectionPopover({
           </div>
         </PopoverContent>
       </Popover>
-
-      <CreateCollectionDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        analysisIdToAdd={analysisId}
-        onCreated={() => {
-          queryClient.invalidateQueries({
-            queryKey: COLLECTIONS_QUERY_KEY(analysisId),
-          });
-          setCreateOpen(false);
-        }}
-      />
     </>
   );
 }

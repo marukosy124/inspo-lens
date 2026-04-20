@@ -1,10 +1,21 @@
+import type { CollectionListItem } from '@/lib/utils/collection';
 import { create } from 'zustand';
 
-type ModalType = 'auth' | 'confirm' | 'alert' | 'auth-gate' | null;
+type ModalType = 'auth' | 'auth-gate' | 'create-collection';
+
+interface CreateCollectionModalProps {
+  onCreated?: (collection: CollectionListItem) => void;
+  analysisIdToAdd?: string | null;
+}
+
+type ModalData =
+  | { type: 'auth'; props?: Record<string, unknown> }
+  | { type: 'auth-gate'; props?: Record<string, unknown> }
+  | { type: 'create-collection'; props?: CreateCollectionModalProps };
 
 interface ModalStore {
-  modal: { type: ModalType; props?: unknown } | null;
-  open: (type: ModalType, props?: unknown) => void;
+  modal: ModalData | null;
+  open: (type: ModalType, props?: Record<string, unknown>) => void;
   close: () => void;
 }
 
