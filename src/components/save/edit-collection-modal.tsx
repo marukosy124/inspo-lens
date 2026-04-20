@@ -13,38 +13,54 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { CollectionListItem } from '@/lib/utils/collection';
+import { TrashIcon } from 'lucide-react';
 
-interface EditCollectionDialogProps {
-  collection: CollectionListItem | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onUpdated: (collection: CollectionListItem) => void;
-  onDeleted: (id: string) => void;
+export interface EditCollectionModalProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  collection?: CollectionListItem | null;
+  onUpdated?: (collection: CollectionListItem) => void;
+  onDeleted?: (id: string) => void;
 }
 
-export function EditCollectionDialog({
-  collection,
-  open,
+export function EditCollectionModal({
+  open: controlledOpen,
   onOpenChange,
+  collection,
   onUpdated,
   onDeleted,
-}: EditCollectionDialogProps) {
+}: EditCollectionModalProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(false);
   const [pending, setPending] = useState(false);
 
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
+  // Reset form when collection changes or dialog opens
   useEffect(() => {
-    if (collection) {
+    if (collection && open) {
       setName(collection.name);
       setDescription(collection.description ?? '');
       setIsPublic(collection.public);
     }
-  }, [collection]);
+  }, [collection, open]);
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setName('');
+      setDescription('');
+      setIsPublic(false);
+    }
+  }, [open]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!collection || !name.trim()) return;
+
     setPending(true);
     try {
       const res = await fetch(`/api/collections/${collection.id}`, {
@@ -56,13 +72,13 @@ export function EditCollectionDialog({
           public: isPublic,
         }),
       });
+
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to update');
-      }
+      if (!res.ok) throw new Error(data.error || 'Failed to update');
+
       toast.success('Collection updated');
-      onUpdated(data.collection);
-      onOpenChange(false);
+      onUpdated?.(data.collection);
+      setOpen(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Update failed');
     } finally {
@@ -79,18 +95,18 @@ export function EditCollectionDialog({
     ) {
       return;
     }
+
     setPending(true);
     try {
       const res = await fetch(`/api/collections/${collection.id}`, {
         method: 'DELETE',
       });
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to delete');
-      }
+      if (!res.ok) throw new Error(data.error || 'Failed to delete');
+
       toast.success('Collection deleted');
-      onDeleted(collection.id);
-      onOpenChange(false);
+      onDeleted?.(collection.id);
+      setOpen(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Delete failed');
     } finally {
@@ -99,13 +115,14 @@ export function EditCollectionDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSave}>
           <DialogHeader>
             <DialogTitle>Edit collection</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-2">
+
+          <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="edit-coll-name">Name</Label>
               <Input
@@ -129,9 +146,10 @@ export function EditCollectionDialog({
                 onChange={(e) => setIsPublic(e.target.checked)}
                 className="border-input size-4 rounded border"
               />
-              Public
+              Public (visible to others)
             </label>
           </div>
+
           <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between">
             <Button
               type="button"
@@ -140,13 +158,14 @@ export function EditCollectionDialog({
               onClick={handleDelete}
               disabled={pending}
             >
+              <TrashIcon />
               Delete
             </Button>
             <div className="flex w-full gap-2 sm:w-auto">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
+                onClick={() => setOpen(false)}
               >
                 Cancel
               </Button>

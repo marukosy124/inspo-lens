@@ -17,7 +17,6 @@ import AnalysisGrid from '@/components/analysis/analysis-grid';
 import { motion } from 'motion/react';
 import type { CollectionListItem } from '@/lib/utils/collection';
 import { CollectionCard } from '@/components/save/collection-card';
-import { EditCollectionDialog } from '@/components/save/edit-collection-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCollectionStore, useModalStore } from '@/stores';
 
@@ -32,13 +31,17 @@ export default function SavedPage({
 }: SavedPageProps) {
   const { user, isLoading } = useAuth();
   const { open: openCollectionModal } = useModalStore();
-  const { collections, addCollection, setCollections } = useCollectionStore();
+  const {
+    collections,
+    addCollection,
+    setCollections,
+    updateCollection,
+    removeCollection,
+  } = useCollectionStore();
   const router = useRouter();
 
   const [savedAnalyses, setSavedAnalyses] =
     useState<ImageInfo[]>(initialSavedAnalyses);
-  const [editTarget, setEditTarget] = useState<CollectionListItem | null>(null);
-  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     if (initialCollections.length > 0) {
@@ -130,6 +133,14 @@ export default function SavedPage({
         console.log({ newCollection });
         addCollection(newCollection);
       },
+    });
+  };
+
+  const handleEdit = (collection: CollectionListItem) => {
+    openCollectionModal('edit-collection', {
+      collection,
+      onUpdated: updateCollection,
+      onDeleted: removeCollection,
     });
   };
 
@@ -243,10 +254,7 @@ export default function SavedPage({
                   <CollectionCard
                     key={c.id}
                     collection={c}
-                    onEdit={(col) => {
-                      setEditTarget(col);
-                      setEditOpen(true);
-                    }}
+                    onEdit={handleEdit}
                   />
                 ))}
               </div>
@@ -254,22 +262,6 @@ export default function SavedPage({
           </TabsContent>
         </Tabs>
       </motion.div>
-
-      <EditCollectionDialog
-        collection={editTarget}
-        open={editOpen}
-        onOpenChange={(open) => {
-          setEditOpen(open);
-          if (!open) setEditTarget(null);
-        }}
-        onUpdated={() => {
-          // TO-FIX
-          // setCollections((prev) => prev.map((x: CollectionListItem) => (x.id === c.id ? c : x)));
-        }}
-        onDeleted={() => {
-          // setCollections((prev) => prev.filter((x) => x.id !== id));
-        }}
-      />
     </div>
   );
 }

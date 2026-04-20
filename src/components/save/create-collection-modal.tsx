@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { CollectionListItem } from '@/lib/utils/collection';
 
-interface CreateCollectionModalProps {
+export interface CreateCollectionModalProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   onCreated?: (collection: CollectionListItem) => void;
